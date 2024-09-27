@@ -34,14 +34,15 @@ def create_fermat_spiral(
     np.ndarray
         Array of the cartesian coordinates of the points in the Vogel's spiral
     """
-    # create fermat spiral
+    # initialize fermat spiral's polar parameters
+    # by dividing n_index by n_points the graph becomes normalized,
+    # then multiplying by the radius gives the desired size
     n_index: np.ndarray = np.arange(0, n_points - 1)
+    r: np.float64 = radius * np.sqrt(n_index / n_points)
     golden_angle: np.float64 = np.pi * (3 - np.sqrt(5))
     theta: np.ndarray = golden_angle * n_index
 
-    # by dividing n_index by n_points the graph becomes normalized,
-    # then multiplying by the radius gives the desired size
-    r: np.float64 = radius * np.sqrt(n_index / n_points)
+    # convert to cartesian coordinates
     x: np.float64 = r * np.cos(theta)
     y: np.float64 = r * np.sin(theta)
 
@@ -57,7 +58,7 @@ def create_fermat_spiral(
 def order_by_distance(point: np.ndarray, coordinates: np.ndarray) -> np.ndarray:
     index: np.ndarray = cdist([point], coordinates, "sqeuclidean")
 
-    if index.size:
+    if index.size > 0:
         result: np.ndarray = coordinates[index.argmin()]
         return result
 
@@ -105,6 +106,7 @@ def shortest_trajectory(coordinates: np.ndarray) -> np.ndarray:
 
 
 coordinates: np.ndarray = create_fermat_spiral()
+shortest_path: np.ndarray = shortest_trajectory(coordinates)
 
 p1.plot(
     coordinates, pen=None, name="positive", symbol="o", symbolBrush="g", symbolPen="r"
@@ -120,9 +122,7 @@ p1.plot(
     pxMode=False,
 )
 
-curve: pg.PlotDataItem = p1.plot(
-    shortest_trajectory(coordinates), pen="r", name="positive"
-)
+trajectory: pg.PlotDataItem = p1.plot(shortest_path, pen="r", name="positive")
 
 if __name__ == "__main__":
     pg.exec()
