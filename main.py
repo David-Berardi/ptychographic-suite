@@ -1,127 +1,128 @@
 import numpy as np
-import pyqtgraph as pg
-#from pyqtgraph.Qt import QtCore
+import pyqtgraph as pg  # type: ignore
+from scipy.spatial.distance import cdist  # type: ignore
 
-# create app
-app = pg.mkQApp("Fermat's Spiral")
+# TODO: IMPLEMENT MVP/MVVM Architecture + Observer Pattern for asynchronous model updates
 
 # create window
-win = pg.GraphicsLayoutWidget(show=True, title="Fermat's Spiral Plot")
+win: pg.GraphicsLayoutWidget = pg.GraphicsLayoutWidget(
+    show=True, title="Vogel's Spiral"
+)
+
 win.resize(600, 600)
-# enable antialiasing
-pg.setConfigOptions(antialias=True)
+pg.setConfigOptions(antialias=True)  # enable antialiasing
 
-p1 = win.addPlot(title="Fermat's Spiral & Ptychographic Trajectory")
+p1: pg.PlotItem = win.addPlot(title="Fermat's Spiral & Ptychographic Trajectory")
 
-def create_fermat_spiral(n_points=119, radius=10, shift=False):
+
+def create_fermat_spiral(
+    n_points: int = 119, radius: float = 10.0, shift: bool = False
+) -> np.ndarray:
+    """create_fermat_spiral summary
+
+    Parameters
+    ----------
+    n_points : int, optional
+        Number of points in the Vogel's spiral, by default 119
+    radius : float, optional
+        Radius of the spiral and scaling factor of distance between points, by default 10.0
+    shift : bool, optional
+        Translate all points to the first quadrant, by default False
+
+    Returns
+    -------
+    np.ndarray
+        Array of the cartesian coordinates of the points in the Vogel's spiral
+    """
     # create fermat spiral
-    n_index = np.arange(0, n_points-1)
-    golden_angle = np.pi*(3-np.sqrt(5))
-    theta = golden_angle * n_index
-    
-    # compute the scaling constant such that the spiral covers an area with radius 
-    #scale_constant = radius/np.sqrt(n_points)
-    
-    r = radius*np.sqrt(n_index/n_points) # by dividing n_index by n_points the graph becomes normalized, then multiplying by the radius gives the desired size
-    x = r*np.cos(theta)
-    y = r*np.sin(theta)
+    n_index: np.ndarray = np.arange(0, n_points - 1)
+    golden_angle: np.float64 = np.pi * (3 - np.sqrt(5))
+    theta: np.ndarray = golden_angle * n_index
+
+    # by dividing n_index by n_points the graph becomes normalized,
+    # then multiplying by the radius gives the desired size
+    r: np.float64 = radius * np.sqrt(n_index / n_points)
+    x: np.float64 = r * np.cos(theta)
+    y: np.float64 = r * np.sin(theta)
 
     # shift image to (0, 0) => no negative coordinate points
     if shift:
         x -= np.min(x)
         y -= np.min(y)
-    
-    #y -= np.max(y)
-    
-    coordinates = np.vstack((x, y), dtype=np.float64).T
-    #negative = np.column_stack((-x, -y))
-    #coordinates = np.vstack([coordinates, negative], dtype=np.float64)
-    #coordinates[:,1] = coordinates[:,1] - np.max(coordinates[:,1])
-    #print(coordinates.min())
+
+    coordinates: np.ndarray = np.vstack((x, y), dtype=np.float64).T
     return coordinates
 
 
-coordinates = create_fermat_spiral()
-#negative = np.column_stack((-x, -y))
-#coordinates = np.vstack([coordinates, negative], dtype=np.float64)
+def order_by_distance(point: np.ndarray, coordinates: np.ndarray) -> np.ndarray:
+    index: np.ndarray = cdist([point], coordinates, "sqeuclidean")
 
-#p1.plot(x, y, pen=None, name="positive", symbol="o", symbolBrush="g", symbolPen="r")
-#p1.plot(-x, -y, pen=None, name="negative", symbol="o", symbolBrush="r", symbolPen="g")
-#p1.plot(x, y, pen="r", name="positive")
-
-from scipy.spatial.distance import cdist
-
-def order_by_distance(point, space):
-    index = cdist([point], space, "sqeuclidean")
     if index.size:
-        result = space[index.argmin()]
+        result: np.ndarray = coordinates[index.argmin()]
         return result
-    return np.empty(shape=(1,2))
+
+    return np.empty(shape=(1, 2))
+
 
 # voglio fare uno scan con una certa taglia, con un passo tra r/2 & r/3 (1micron)
 # misura dimensione di fascio (3 micron circa ) knife edge -> misura diametro
-def create_trajectory(initial_point):
-    size = 0
-    test_coordinates = coordinates
-    #sorted_coordinates = np.array([coordinates[np.random.choice(coordinates.size // 2)]], dtype=np.float64)
-    sorted_coordinates = np.array([initial_point], dtype=np.float64)
-    
+def create_trajectory(initial_point: np.ndarray, coordinates: np.ndarray) -> np.ndarray:
+    size: int = 0
+    current_coordinates: np.ndarray = coordinates
+    sorted_coordinates: np.ndarray = np.array([initial_point], dtype=np.float64)
+
     while size < coordinates.size // 2:
-        # really slow
-        """
-        mem = test_coordinates
-        for item in sorted_coordinates:
-            for index, test in enumerate(mem):
-                if (item == test).all():
-                    test_coordinates = np.delete(test_coordinates, index, axis=0)
-        """  
-             
-        #much faster:
-        mask = cdist(test_coordinates, sorted_coordinates, "sqeuclidean") == 0
-        test_coordinates = np.delete(test_coordinates, mask.any(axis=1), axis=0)
-        
-        #print(f"Epoch: {size}; starting: {sorted_coordinates}, deleted: {test_coordinates[mask.any(axis=1)]}")
-        #mask = cdist(test_coordinates, sorted_coordinates) == 0
-        #print(f"starting: {sorted_coordinates}, deleted: {test_coordinates[mask.any(axis=1)]}")
-        #print(np.delete(test_coordinates, mask))
-                    
-        result = order_by_distance(sorted_coordinates[-1], test_coordinates)
+        # much faster:
+        mask: np.ndarray = (
+            cdist(current_coordinates, sorted_coordinates, "sqeuclidean") == 0
+        )
+        current_coordinates = np.delete(current_coordinates, mask.any(axis=1), axis=0)
+
+        result: np.ndarray = order_by_distance(
+            sorted_coordinates[-1], current_coordinates
+        )
         sorted_coordinates = np.vstack([sorted_coordinates, result], dtype=np.float64)
-        
+
         size += 1
-    
+
     return sorted_coordinates
 
+
 # algorithm to find the shortest trajectory based on the initial point, then choose that trajectory
-def shortest_trajectory():
-    distances = np.array([])
+def shortest_trajectory(coordinates: np.ndarray) -> np.ndarray:
+    distances: np.ndarray = np.array([], dtype=np.float64)
+
     for point in coordinates:
-        diff = np.diff(create_trajectory(point), axis=0)
-        total_distance = np.hypot(diff[:,0], diff[:,1]).sum()
+        diff: np.ndarray = np.diff(create_trajectory(point, coordinates), axis=0)
+        total_distance: np.ndarray = np.hypot(diff[:, 0], diff[:, 1]).sum()
         distances = np.append(distances, total_distance)
 
-    trajectory = create_trajectory(coordinates[distances.argmin()])
+    trajectory: np.ndarray = create_trajectory(
+        coordinates[distances.argmin()], coordinates
+    )
+
     return trajectory
 
 
-p1.plot(coordinates, pen=None, name="positive", symbol="o", symbolBrush="g", symbolPen="r")
-p1.plot(coordinates, pen=None, name="Circles", symbol="o", symbolBrush=None, symbolPen="b", symbolSize=2, pxMode=False)
+coordinates: np.ndarray = create_fermat_spiral()
 
-#data = create_trajectory()
-#curve = p1.plot(create_trajectory(coordinates[0]), pen="r", name="positive")
-#curve = p1.plot(shortest_trajectory(), pen="r", name="positive")
+p1.plot(
+    coordinates, pen=None, name="positive", symbol="o", symbolBrush="g", symbolPen="r"
+)
+p1.plot(
+    coordinates,
+    pen=None,
+    name="Circles",
+    symbol="o",
+    symbolBrush=None,
+    symbolPen="b",
+    symbolSize=2,
+    pxMode=False,
+)
 
-"""
-# animation
-def update():
-    global data
-    curve.setData(data)
-    data = create_trajectory()
-    
-timer = QtCore.QTimer()
-timer.timeout.connect(update)
-timer.start(10)
-"""
+curve: pg.PlotDataItem = p1.plot(
+    shortest_trajectory(coordinates), pen="r", name="positive"
+)
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     pg.exec()
