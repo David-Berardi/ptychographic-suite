@@ -190,7 +190,7 @@
      <item>
       <layout class="QGridLayout" name="gridLayout_4">
        <item row="0" column="0">
-        <widget class="QLabel" name="label">
+        <widget class="QLabel" name="channel_2_label">
          <property name="text">
           <string>Channel 2 [Z]:</string>
          </property>
@@ -205,14 +205,14 @@
           <set>Qt::AlignCenter</set>
          </property>
          <item row="0" column="0">
-          <widget class="QLabel" name="label_2">
+          <widget class="QLabel" name="position_2_label">
            <property name="text">
             <string>Position [nm]</string>
            </property>
           </widget>
          </item>
          <item row="0" column="1">
-          <widget class="QSpinBox" name="spinBox">
+          <widget class="QSpinBox" name="position_2">
            <property name="alignment">
             <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
            </property>

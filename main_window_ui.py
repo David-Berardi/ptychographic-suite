@@ -20,7 +20,7 @@ from PySide6.QtWidgets import (QAbstractSpinBox, QApplication, QComboBox, QFormL
     QGridLayout, QHBoxLayout, QLabel, QMainWindow,
     QMenu, QMenuBar, QPushButton, QSizePolicy,
     QSpacerItem, QSpinBox, QStatusBar, QTabWidget,
-    QVBoxLayout, QWidget)
+    QToolButton, QVBoxLayout, QWidget)
 
 class Ui_MainWindow(object):
     def setupUi(self, MainWindow):
@@ -470,6 +470,26 @@ class Ui_MainWindow(object):
 
         self.verticalLayout_2.addLayout(self.horizontalLayout_6)
 
+        self.horizontalLayout_5 = QHBoxLayout()
+        self.horizontalLayout_5.setObjectName(u"horizontalLayout_5")
+        self.select_label = QLabel(self.camera_properties_tab)
+        self.select_label.setObjectName(u"select_label")
+
+        self.horizontalLayout_5.addWidget(self.select_label)
+
+        self.directory_label = QLabel(self.camera_properties_tab)
+        self.directory_label.setObjectName(u"directory_label")
+
+        self.horizontalLayout_5.addWidget(self.directory_label)
+
+        self.directory_button = QToolButton(self.camera_properties_tab)
+        self.directory_button.setObjectName(u"directory_button")
+
+        self.horizontalLayout_5.addWidget(self.directory_button)
+
+
+        self.verticalLayout_2.addLayout(self.horizontalLayout_5)
+
         self.formLayout = QFormLayout()
         self.formLayout.setObjectName(u"formLayout")
         self.formLayout.setFormAlignment(Qt.AlignLeading|Qt.AlignLeft|Qt.AlignVCenter)
@@ -496,16 +516,34 @@ class Ui_MainWindow(object):
         self.frames.setAlignment(Qt.AlignRight|Qt.AlignTrailing|Qt.AlignVCenter)
         self.frames.setButtonSymbols(QAbstractSpinBox.NoButtons)
         self.frames.setKeyboardTracking(False)
+        self.frames.setMinimum(1)
+        self.frames.setMaximum(100)
 
         self.formLayout.setWidget(1, QFormLayout.FieldRole, self.frames)
+
+
+        self.verticalLayout_2.addLayout(self.formLayout)
+
+        self.gridLayout_8 = QGridLayout()
+        self.gridLayout_8.setObjectName(u"gridLayout_8")
+        self.stop_button = QPushButton(self.camera_properties_tab)
+        self.stop_button.setObjectName(u"stop_button")
+        sizePolicy = QSizePolicy(QSizePolicy.Policy.Minimum, QSizePolicy.Policy.Fixed)
+        sizePolicy.setHorizontalStretch(0)
+        sizePolicy.setVerticalStretch(0)
+        sizePolicy.setHeightForWidth(self.stop_button.sizePolicy().hasHeightForWidth())
+        self.stop_button.setSizePolicy(sizePolicy)
+        self.stop_button.setLayoutDirection(Qt.LeftToRight)
+
+        self.gridLayout_8.addWidget(self.stop_button, 0, 1, 1, 1)
 
         self.capture_button = QPushButton(self.camera_properties_tab)
         self.capture_button.setObjectName(u"capture_button")
 
-        self.formLayout.setWidget(2, QFormLayout.FieldRole, self.capture_button)
+        self.gridLayout_8.addWidget(self.capture_button, 0, 0, 1, 1)
 
 
-        self.verticalLayout_2.addLayout(self.formLayout)
+        self.verticalLayout_2.addLayout(self.gridLayout_8)
 
         self.verticalSpacer_4 = QSpacerItem(20, 40, QSizePolicy.Policy.Minimum, QSizePolicy.Policy.MinimumExpanding)
 
@@ -536,7 +574,7 @@ class Ui_MainWindow(object):
 
         self.retranslateUi(MainWindow)
 
-        self.tabWidget.setCurrentIndex(0)
+        self.tabWidget.setCurrentIndex(1)
 
 
         QMetaObject.connectSlotsByName(MainWindow)
@@ -587,8 +625,12 @@ class Ui_MainWindow(object):
 #endif // QT_CONFIG(accessibility)
         self.cameras.setPlaceholderText(QCoreApplication.translate("MainWindow", u"No devices found", None))
         self.refresh_camera_button.setText(QCoreApplication.translate("MainWindow", u"Refresh", None))
+        self.select_label.setText(QCoreApplication.translate("MainWindow", u"Select directory", None))
+        self.directory_label.setText("")
+        self.directory_button.setText(QCoreApplication.translate("MainWindow", u"...", None))
         self.exposure_label.setText(QCoreApplication.translate("MainWindow", u"Exposure time [micro s]", None))
         self.frames_label.setText(QCoreApplication.translate("MainWindow", u"N. frames", None))
+        self.stop_button.setText(QCoreApplication.translate("MainWindow", u"Stop", None))
         self.capture_button.setText(QCoreApplication.translate("MainWindow", u"Capture", None))
         self.tabWidget.setTabText(self.tabWidget.indexOf(self.camera_properties_tab), QCoreApplication.translate("MainWindow", u"Camera Properties", None))
         self.tabWidget.setTabText(self.tabWidget.indexOf(self.tab), QCoreApplication.translate("MainWindow", u"Ptychographic Algorithm", None))

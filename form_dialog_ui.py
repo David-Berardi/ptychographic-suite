@@ -129,28 +129,28 @@ class Ui_Dialog(object):
 
         self.gridLayout_4 = QGridLayout()
         self.gridLayout_4.setObjectName(u"gridLayout_4")
-        self.label = QLabel(Dialog)
-        self.label.setObjectName(u"label")
-        self.label.setAlignment(Qt.AlignCenter)
+        self.channel_2_label = QLabel(Dialog)
+        self.channel_2_label.setObjectName(u"channel_2_label")
+        self.channel_2_label.setAlignment(Qt.AlignCenter)
 
-        self.gridLayout_4.addWidget(self.label, 0, 0, 1, 1)
+        self.gridLayout_4.addWidget(self.channel_2_label, 0, 0, 1, 1)
 
         self.formLayout_3 = QFormLayout()
         self.formLayout_3.setObjectName(u"formLayout_3")
         self.formLayout_3.setFormAlignment(Qt.AlignCenter)
-        self.label_2 = QLabel(Dialog)
-        self.label_2.setObjectName(u"label_2")
+        self.position_2_label = QLabel(Dialog)
+        self.position_2_label.setObjectName(u"position_2_label")
 
-        self.formLayout_3.setWidget(0, QFormLayout.LabelRole, self.label_2)
+        self.formLayout_3.setWidget(0, QFormLayout.LabelRole, self.position_2_label)
 
-        self.spinBox = QSpinBox(Dialog)
-        self.spinBox.setObjectName(u"spinBox")
-        self.spinBox.setAlignment(Qt.AlignRight|Qt.AlignTrailing|Qt.AlignVCenter)
-        self.spinBox.setButtonSymbols(QAbstractSpinBox.NoButtons)
-        self.spinBox.setMinimum(-1000000000)
-        self.spinBox.setMaximum(1000000000)
+        self.position_2 = QSpinBox(Dialog)
+        self.position_2.setObjectName(u"position_2")
+        self.position_2.setAlignment(Qt.AlignRight|Qt.AlignTrailing|Qt.AlignVCenter)
+        self.position_2.setButtonSymbols(QAbstractSpinBox.NoButtons)
+        self.position_2.setMinimum(-1000000000)
+        self.position_2.setMaximum(1000000000)
 
-        self.formLayout_3.setWidget(0, QFormLayout.FieldRole, self.spinBox)
+        self.formLayout_3.setWidget(0, QFormLayout.FieldRole, self.position_2)
 
 
         self.gridLayout_4.addLayout(self.formLayout_3, 1, 0, 1, 1)
@@ -199,8 +199,8 @@ class Ui_Dialog(object):
         self.position_0_label.setText(QCoreApplication.translate("Dialog", u"Position [nm]", None))
         self.position_1_label.setText(QCoreApplication.translate("Dialog", u"Position [nm]", None))
         self.channel_1_label.setText(QCoreApplication.translate("Dialog", u"Channel 1 [Y]:", None))
-        self.label.setText(QCoreApplication.translate("Dialog", u"Channel 2 [Z]:", None))
-        self.label_2.setText(QCoreApplication.translate("Dialog", u"Position [nm]", None))
+        self.channel_2_label.setText(QCoreApplication.translate("Dialog", u"Channel 2 [Z]:", None))
+        self.position_2_label.setText(QCoreApplication.translate("Dialog", u"Position [nm]", None))
         self.move_button.setText(QCoreApplication.translate("Dialog", u"Move", None))
         self.abort_button.setText(QCoreApplication.translate("Dialog", u"Abort", None))
     # retranslateUi

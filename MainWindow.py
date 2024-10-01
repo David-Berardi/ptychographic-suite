@@ -1,14 +1,15 @@
 #!/usr/bin/python3
+import os
 import sys
 import time
 
 import cv2
 import imutils
 import numpy as np
-import smaract.ctl as ctl
+import smaract.ctl as ctl  # type: ignore
 from PySide6.QtCore import QObject, QThread, QTimer, Signal, Slot
 from PySide6.QtGui import QImage, QPixmap
-from PySide6.QtWidgets import QApplication, QDialog, QMainWindow
+from PySide6.QtWidgets import QApplication, QDialog, QFileDialog, QMainWindow
 
 # if on Windows, use the provided setup script to add the DLLs folder to the PATH
 """ from windows_setup import configure_path
@@ -30,7 +31,7 @@ class Signals(QObject):
     error = Signal(str)
     locator = Signal(str)
     update_data = Signal(list)
-    pos = Signal(int)
+    default = Signal(list)
 
 
 class MCS2_Controller:
@@ -46,7 +47,7 @@ class MCS2_Controller:
         self.timer.setInterval(750)  # ms
         self.timer.timeout.connect(self.update_data)
 
-        # self.timer.start()
+        self.timer.start()
 
         # self.signals.error.emit("alpha")
         # check version and compability
@@ -64,6 +65,7 @@ class MCS2_Controller:
 
             if len(buffer) == 0:
                 self.signals.error.emit("MCS2 no devices found.")
+                self.signals.default.emit([1000000, 100000000])  # TEMPORARY
                 print("MCS2 no devices found.")
                 return
 
@@ -84,34 +86,43 @@ class MCS2_Controller:
             print(f"MCS2 position of channel {0}: {position}", end="")
             print("pm.") if base_unit == ctl.BaseUnit.METER else print("ndeg.")
 
+            default_velocity = 1000000000
+            default_acceleration = 1000000000
+
             # default velocity for all channels [in pm/s]
             ctl.SetProperty_i64(
-                self.d_handle, 0, ctl.Property.MOVE_VELOCITY, 1000000000
+                self.d_handle, 0, ctl.Property.MOVE_VELOCITY, default_velocity
             )
             ctl.SetProperty_i64(
-                self.d_handle, 1, ctl.Property.MOVE_VELOCITY, 1000000000
+                self.d_handle, 1, ctl.Property.MOVE_VELOCITY, default_velocity
             )
             ctl.SetProperty_i64(
-                self.d_handle, 2, ctl.Property.MOVE_VELOCITY, 1000000000
+                self.d_handle, 2, ctl.Property.MOVE_VELOCITY, default_velocity
             )
 
             # default acceleration for all channels [in pm/s2]
             ctl.SetProperty_i64(
-                self.d_handle, 0, ctl.Property.MOVE_ACCELERATION, 1000000000
+                self.d_handle, 0, ctl.Property.MOVE_ACCELERATION, default_acceleration
             )
             ctl.SetProperty_i64(
-                self.d_handle, 1, ctl.Property.MOVE_ACCELERATION, 1000000000
+                self.d_handle, 1, ctl.Property.MOVE_ACCELERATION, default_acceleration
             )
             ctl.SetProperty_i64(
-                self.d_handle, 2, ctl.Property.MOVE_ACCELERATION, 1000000000
+                self.d_handle, 2, ctl.Property.MOVE_ACCELERATION, default_acceleration
             )
+
+            # TODO: update interface with default velocity and acceleration
+            self.signals.default.emit([default_velocity, default_acceleration])
+            print(default_velocity)
 
             # start data acquisition
             self.timer.start()
 
         except Exception as e:
-            self.signals.error.emit("MCS2 failed to find devices. Exit.")
-            print("MCS2 failed to find devices. Exit.")
+            self.signals.error.emit(
+                "MCS2 failed to find devices. Exit. An exception has occured"
+            )
+            print("MCS2 failed to find devices. Exit. An exception has occured")
             return
 
     def assert_lib_compatibility(self):
@@ -124,7 +135,7 @@ class MCS2_Controller:
 
     @Slot(int)
     def set_movement_mode(self, mode):
-        if mode == 0:
+        if mode == 0:  # ABSOLUTE mode
             # TODO: write as command group
             ctl.SetProperty_i32(
                 self.d_handle, 0, ctl.Property.MOVE_MODE, ctl.MoveMode.CL_ABSOLUTE
@@ -138,7 +149,7 @@ class MCS2_Controller:
             print(
                 f"Movement Mode: {ctl.GetProperty_i32(self.d_handle, 0, ctl.Property.MOVE_MODE)} ABSOLUTE"
             )
-        if mode == 1:
+        if mode == 1:  # RELATIVE mode
             # TODO: write as command group
             ctl.SetProperty_i32(
                 self.d_handle, 0, ctl.Property.MOVE_MODE, ctl.MoveMode.CL_RELATIVE
@@ -260,21 +271,43 @@ class ScientificCamera(QThread):
         print("Image acquisition has stopped")"""
 
     frame_signal = Signal(QImage)
+    stop = False
 
     def run(self):
         self.is_captured = False
         self.cap = cv2.VideoCapture(0)
 
+        i = 0
+        frames = []
+
+        # self.locator.emit("Thorlabs Scientific Camera")
+
         while self.cap.isOpened():
             # cv2.waitKey(15)  # fps
             _, frame = self.cap.read()
 
+            if self.stop:
+                break
+
             if self.is_captured:
-                cv2.imwrite("D:/Downloads/frame_image.png", frame)
-                self.is_captured = False
+                frames.append(frame)
+                i += 1
+                print(f"Frame #{i}")
+
+                if i == self.frames:
+                    final_image = np.array(np.mean(frames, axis=(0)), dtype=np.uint8)
+                    cv2.imwrite(
+                        os.path.join(self.directory, "image_directory.png"), final_image
+                    )
+                    i = 0
+                    frames = []
+                    self.is_captured = False
 
             frame = self.cvimage_to_label(frame)
             self.frame_signal.emit(frame)
+
+        self.cap.release()
+        cv2.destroyAllWindows()
 
     def cvimage_to_label(self, image):
         image = imutils.resize(image, width=240, height=240)
@@ -282,8 +315,10 @@ class ScientificCamera(QThread):
         image = QImage(image, image.shape[1], image.shape[0], QImage.Format_RGB888)
         return image
 
-    def capture(self):
+    def capture(self, directory, frames):
         self.is_captured = True
+        self.frames = frames
+        self.directory = directory
 
 
 class MoveForm(QDialog, Ui_Dialog):
@@ -307,9 +342,6 @@ class MainWindow(QMainWindow, Ui_MainWindow):
 
         # camera
         self.refresh_camera_button.clicked.connect(self.refresh_camera)
-        self.camera_thread = ScientificCamera()
-        self.camera_thread.frame_signal.connect(self.setImage)
-        self.capture_button.clicked.connect(self.camera_thread.capture)
 
     def refresh_controller(self):
         if self.devices.count() == 0:
@@ -318,13 +350,34 @@ class MainWindow(QMainWindow, Ui_MainWindow):
             self.device.signals.error.connect(self.show_error)
             self.device.signals.locator.connect(self.show_locator)
             self.device.signals.update_data.connect(self.get_position)
+            self.device.signals.default.connect(self.default)
 
             self.device.initialize_controller()
 
+    @Slot(list)
+    def default(self, settings):
+        print(settings)
+        self.velocity_0.setValue(settings[0])
+        self.velocity_1.setValue(settings[0])
+        self.velocity_2.setValue(settings[0])
+
+        self.acceleration_0.setValue(settings[1])
+        self.acceleration_1.setValue(settings[1])
+        self.acceleration_2.setValue(settings[1])
+
     def refresh_camera(self):
-        """if self.cameras.count() == 0:
-        self.camera = ScientificCamera()"""
-        self.camera_thread.start()
+        if self.cameras.count() == 0:
+            self.cameras.addItem("Thorlabs")
+            self.cameras.setCurrentIndex(0)
+
+            self.camera_thread = ScientificCamera()
+            self.camera_thread.start()
+
+            self.camera_thread.frame_signal.connect(self.setImage)
+            self.capture_button.clicked.connect(self.capture)
+            self.directory_label.setText(str(os.getcwd()))
+            self.directory_button.clicked.connect(self.select_directory)
+            self.stop_button.clicked.connect(self.stop_camera)
 
     @Slot(QImage)
     def setImage(self, image):
@@ -333,6 +386,32 @@ class MainWindow(QMainWindow, Ui_MainWindow):
     @Slot(str)
     def show_error(self, error_message):
         self.error_label.setText(error_message)
+
+    def select_directory(self):
+        directory = QFileDialog.getExistingDirectory(
+            self, caption="Select Directory", options=QFileDialog.Option.ShowDirsOnly
+        )
+        self.directory_label.setText(str(directory))
+
+    def capture(self):
+        directory = self.directory_label.text()
+        frames = self.frames.value()
+        self.camera_thread.capture(directory, frames)
+
+    def stop_camera(self):
+        # Stop camera thread
+        self.camera_thread.quit()
+
+        self.live_feed.setText("Live Feed")
+        self.cameras.removeItem(0)
+
+        self.directory_label.setText("")
+
+        self.capture_button.clicked.disconnect()
+        self.directory_button.clicked.disconnect()
+        self.stop_button.clicked.disconnect()
+
+        self.camera_thread.stop = True
 
     @Slot(str)
     def show_locator(self, locator_id):
@@ -368,6 +447,11 @@ class MainWindow(QMainWindow, Ui_MainWindow):
 
         self.move_form.move_button.clicked.connect(self.move)
         self.move_form.abort_button.clicked.connect(self.device.abort)
+
+        # current position
+        self.move_form.position_0.setValue(self.position_0.value())
+        self.move_form.position_1.setValue(self.position_1.value())
+        self.move_form.position_2.setValue(self.position_2.value())
 
         if self.move_form.exec():
             print("Movement Form")
