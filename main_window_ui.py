@@ -3,7 +3,7 @@
 ################################################################################
 ## Form generated from reading UI file 'main_window.ui'
 ##
-## Created by: Qt User Interface Compiler version 6.6.3
+## Created by: Qt User Interface Compiler version 6.7.3
 ##
 ## WARNING! All changes made in this file will be lost when recompiling UI file!
 ################################################################################
@@ -26,7 +26,7 @@ class Ui_MainWindow(object):
     def setupUi(self, MainWindow):
         if not MainWindow.objectName():
             MainWindow.setObjectName(u"MainWindow")
-        MainWindow.resize(746, 493)
+        MainWindow.resize(805, 512)
         self.centralwidget = QWidget(MainWindow)
         self.centralwidget.setObjectName(u"centralwidget")
         self.horizontalLayout_3 = QHBoxLayout(self.centralwidget)
@@ -126,8 +126,9 @@ class Ui_MainWindow(object):
         self.step_size_1 = QSpinBox(self.actuator_properties_tab)
         self.step_size_1.setObjectName(u"step_size_1")
         self.step_size_1.setEnabled(False)
-        self.step_size_1.setAlignment(Qt.AlignRight|Qt.AlignTrailing|Qt.AlignVCenter)
-        self.step_size_1.setButtonSymbols(QAbstractSpinBox.NoButtons)
+        self.step_size_1.setAlignment(Qt.AlignmentFlag.AlignRight|Qt.AlignmentFlag.AlignTrailing|Qt.AlignmentFlag.AlignVCenter)
+        self.step_size_1.setButtonSymbols(QAbstractSpinBox.ButtonSymbols.NoButtons)
+        self.step_size_1.setMinimum(1)
         self.step_size_1.setMaximum(1000000000)
 
         self.gridLayout_4.addWidget(self.step_size_1, 0, 1, 1, 1)
@@ -182,8 +183,9 @@ class Ui_MainWindow(object):
         self.step_size_0 = QSpinBox(self.actuator_properties_tab)
         self.step_size_0.setObjectName(u"step_size_0")
         self.step_size_0.setEnabled(False)
-        self.step_size_0.setAlignment(Qt.AlignRight|Qt.AlignTrailing|Qt.AlignVCenter)
-        self.step_size_0.setButtonSymbols(QAbstractSpinBox.NoButtons)
+        self.step_size_0.setAlignment(Qt.AlignmentFlag.AlignRight|Qt.AlignmentFlag.AlignTrailing|Qt.AlignmentFlag.AlignVCenter)
+        self.step_size_0.setButtonSymbols(QAbstractSpinBox.ButtonSymbols.NoButtons)
+        self.step_size_0.setMinimum(1)
         self.step_size_0.setMaximum(1000000000)
 
         self.gridLayout_3.addWidget(self.step_size_0, 0, 1, 1, 1)
@@ -200,7 +202,7 @@ class Ui_MainWindow(object):
         self.channel_1_layout.setObjectName(u"channel_1_layout")
         self.channel_1_label = QLabel(self.actuator_properties_tab)
         self.channel_1_label.setObjectName(u"channel_1_label")
-        self.channel_1_label.setAlignment(Qt.AlignCenter)
+        self.channel_1_label.setAlignment(Qt.AlignmentFlag.AlignCenter)
 
         self.channel_1_layout.setWidget(0, QFormLayout.SpanningRole, self.channel_1_label)
 
@@ -212,8 +214,8 @@ class Ui_MainWindow(object):
         self.position_1 = QSpinBox(self.actuator_properties_tab)
         self.position_1.setObjectName(u"position_1")
         self.position_1.setEnabled(False)
-        self.position_1.setAlignment(Qt.AlignRight|Qt.AlignTrailing|Qt.AlignVCenter)
-        self.position_1.setButtonSymbols(QAbstractSpinBox.NoButtons)
+        self.position_1.setAlignment(Qt.AlignmentFlag.AlignRight|Qt.AlignmentFlag.AlignTrailing|Qt.AlignmentFlag.AlignVCenter)
+        self.position_1.setButtonSymbols(QAbstractSpinBox.ButtonSymbols.NoButtons)
         self.position_1.setMinimum(-1000000000)
         self.position_1.setMaximum(1000000000)
 
@@ -227,8 +229,8 @@ class Ui_MainWindow(object):
         self.velocity_1 = QSpinBox(self.actuator_properties_tab)
         self.velocity_1.setObjectName(u"velocity_1")
         self.velocity_1.setEnabled(False)
-        self.velocity_1.setAlignment(Qt.AlignRight|Qt.AlignTrailing|Qt.AlignVCenter)
-        self.velocity_1.setButtonSymbols(QAbstractSpinBox.NoButtons)
+        self.velocity_1.setAlignment(Qt.AlignmentFlag.AlignRight|Qt.AlignmentFlag.AlignTrailing|Qt.AlignmentFlag.AlignVCenter)
+        self.velocity_1.setButtonSymbols(QAbstractSpinBox.ButtonSymbols.NoButtons)
         self.velocity_1.setKeyboardTracking(False)
         self.velocity_1.setMaximum(1000000000)
 
@@ -242,8 +244,8 @@ class Ui_MainWindow(object):
         self.acceleration_1 = QSpinBox(self.actuator_properties_tab)
         self.acceleration_1.setObjectName(u"acceleration_1")
         self.acceleration_1.setEnabled(False)
-        self.acceleration_1.setAlignment(Qt.AlignRight|Qt.AlignTrailing|Qt.AlignVCenter)
-        self.acceleration_1.setButtonSymbols(QAbstractSpinBox.NoButtons)
+        self.acceleration_1.setAlignment(Qt.AlignmentFlag.AlignRight|Qt.AlignmentFlag.AlignTrailing|Qt.AlignmentFlag.AlignVCenter)
+        self.acceleration_1.setButtonSymbols(QAbstractSpinBox.ButtonSymbols.NoButtons)
         self.acceleration_1.setKeyboardTracking(False)
         self.acceleration_1.setMaximum(1000000000)
 
@@ -261,7 +263,7 @@ class Ui_MainWindow(object):
         self.channel_2_layout.setObjectName(u"channel_2_layout")
         self.channel_2_label = QLabel(self.actuator_properties_tab)
         self.channel_2_label.setObjectName(u"channel_2_label")
-        self.channel_2_label.setAlignment(Qt.AlignCenter)
+        self.channel_2_label.setAlignment(Qt.AlignmentFlag.AlignCenter)
 
         self.channel_2_layout.setWidget(0, QFormLayout.SpanningRole, self.channel_2_label)
 
@@ -273,8 +275,8 @@ class Ui_MainWindow(object):
         self.position_2 = QSpinBox(self.actuator_properties_tab)
         self.position_2.setObjectName(u"position_2")
         self.position_2.setEnabled(False)
-        self.position_2.setAlignment(Qt.AlignRight|Qt.AlignTrailing|Qt.AlignVCenter)
-        self.position_2.setButtonSymbols(QAbstractSpinBox.NoButtons)
+        self.position_2.setAlignment(Qt.AlignmentFlag.AlignRight|Qt.AlignmentFlag.AlignTrailing|Qt.AlignmentFlag.AlignVCenter)
+        self.position_2.setButtonSymbols(QAbstractSpinBox.ButtonSymbols.NoButtons)
         self.position_2.setMinimum(-1000000000)
         self.position_2.setMaximum(1000000000)
 
@@ -288,8 +290,8 @@ class Ui_MainWindow(object):
         self.velocity_2 = QSpinBox(self.actuator_properties_tab)
         self.velocity_2.setObjectName(u"velocity_2")
         self.velocity_2.setEnabled(False)
-        self.velocity_2.setAlignment(Qt.AlignRight|Qt.AlignTrailing|Qt.AlignVCenter)
-        self.velocity_2.setButtonSymbols(QAbstractSpinBox.NoButtons)
+        self.velocity_2.setAlignment(Qt.AlignmentFlag.AlignRight|Qt.AlignmentFlag.AlignTrailing|Qt.AlignmentFlag.AlignVCenter)
+        self.velocity_2.setButtonSymbols(QAbstractSpinBox.ButtonSymbols.NoButtons)
         self.velocity_2.setMinimum(0)
         self.velocity_2.setMaximum(1000000000)
 
@@ -303,9 +305,9 @@ class Ui_MainWindow(object):
         self.acceleration_2 = QSpinBox(self.actuator_properties_tab)
         self.acceleration_2.setObjectName(u"acceleration_2")
         self.acceleration_2.setEnabled(False)
-        self.acceleration_2.setAlignment(Qt.AlignRight|Qt.AlignTrailing|Qt.AlignVCenter)
+        self.acceleration_2.setAlignment(Qt.AlignmentFlag.AlignRight|Qt.AlignmentFlag.AlignTrailing|Qt.AlignmentFlag.AlignVCenter)
         self.acceleration_2.setReadOnly(False)
-        self.acceleration_2.setButtonSymbols(QAbstractSpinBox.NoButtons)
+        self.acceleration_2.setButtonSymbols(QAbstractSpinBox.ButtonSymbols.NoButtons)
         self.acceleration_2.setMinimum(0)
         self.acceleration_2.setMaximum(1000000000)
 
@@ -336,8 +338,9 @@ class Ui_MainWindow(object):
         self.step_size_2 = QSpinBox(self.actuator_properties_tab)
         self.step_size_2.setObjectName(u"step_size_2")
         self.step_size_2.setEnabled(False)
-        self.step_size_2.setAlignment(Qt.AlignRight|Qt.AlignTrailing|Qt.AlignVCenter)
-        self.step_size_2.setButtonSymbols(QAbstractSpinBox.NoButtons)
+        self.step_size_2.setAlignment(Qt.AlignmentFlag.AlignRight|Qt.AlignmentFlag.AlignTrailing|Qt.AlignmentFlag.AlignVCenter)
+        self.step_size_2.setButtonSymbols(QAbstractSpinBox.ButtonSymbols.NoButtons)
+        self.step_size_2.setMinimum(1)
         self.step_size_2.setMaximum(1000000000)
 
         self.gridLayout_5.addWidget(self.step_size_2, 0, 1, 1, 1)
@@ -371,7 +374,7 @@ class Ui_MainWindow(object):
         self.channel_0_layout.setObjectName(u"channel_0_layout")
         self.channel_0_label = QLabel(self.actuator_properties_tab)
         self.channel_0_label.setObjectName(u"channel_0_label")
-        self.channel_0_label.setAlignment(Qt.AlignCenter)
+        self.channel_0_label.setAlignment(Qt.AlignmentFlag.AlignCenter)
 
         self.channel_0_layout.setWidget(0, QFormLayout.SpanningRole, self.channel_0_label)
 
@@ -383,12 +386,12 @@ class Ui_MainWindow(object):
         self.position_0 = QSpinBox(self.actuator_properties_tab)
         self.position_0.setObjectName(u"position_0")
         self.position_0.setEnabled(False)
-        self.position_0.setAlignment(Qt.AlignRight|Qt.AlignTrailing|Qt.AlignVCenter)
-        self.position_0.setButtonSymbols(QAbstractSpinBox.NoButtons)
+        self.position_0.setAlignment(Qt.AlignmentFlag.AlignRight|Qt.AlignmentFlag.AlignTrailing|Qt.AlignmentFlag.AlignVCenter)
+        self.position_0.setButtonSymbols(QAbstractSpinBox.ButtonSymbols.NoButtons)
         self.position_0.setKeyboardTracking(False)
         self.position_0.setMinimum(-1000000000)
         self.position_0.setMaximum(1000000000)
-        self.position_0.setStepType(QAbstractSpinBox.DefaultStepType)
+        self.position_0.setStepType(QAbstractSpinBox.StepType.DefaultStepType)
 
         self.channel_0_layout.setWidget(1, QFormLayout.FieldRole, self.position_0)
 
@@ -400,8 +403,8 @@ class Ui_MainWindow(object):
         self.velocity_0 = QSpinBox(self.actuator_properties_tab)
         self.velocity_0.setObjectName(u"velocity_0")
         self.velocity_0.setEnabled(False)
-        self.velocity_0.setAlignment(Qt.AlignRight|Qt.AlignTrailing|Qt.AlignVCenter)
-        self.velocity_0.setButtonSymbols(QAbstractSpinBox.NoButtons)
+        self.velocity_0.setAlignment(Qt.AlignmentFlag.AlignRight|Qt.AlignmentFlag.AlignTrailing|Qt.AlignmentFlag.AlignVCenter)
+        self.velocity_0.setButtonSymbols(QAbstractSpinBox.ButtonSymbols.NoButtons)
         self.velocity_0.setKeyboardTracking(False)
         self.velocity_0.setMaximum(1000000000)
 
@@ -415,8 +418,8 @@ class Ui_MainWindow(object):
         self.acceleration_0 = QSpinBox(self.actuator_properties_tab)
         self.acceleration_0.setObjectName(u"acceleration_0")
         self.acceleration_0.setEnabled(False)
-        self.acceleration_0.setAlignment(Qt.AlignRight|Qt.AlignTrailing|Qt.AlignVCenter)
-        self.acceleration_0.setButtonSymbols(QAbstractSpinBox.NoButtons)
+        self.acceleration_0.setAlignment(Qt.AlignmentFlag.AlignRight|Qt.AlignmentFlag.AlignTrailing|Qt.AlignmentFlag.AlignVCenter)
+        self.acceleration_0.setButtonSymbols(QAbstractSpinBox.ButtonSymbols.NoButtons)
         self.acceleration_0.setKeyboardTracking(False)
         self.acceleration_0.setMaximum(1000000000)
 
@@ -440,7 +443,7 @@ class Ui_MainWindow(object):
         self.live_feed = QLabel(self.camera_properties_tab)
         self.live_feed.setObjectName(u"live_feed")
         self.live_feed.setEnabled(True)
-        self.live_feed.setAlignment(Qt.AlignCenter)
+        self.live_feed.setAlignment(Qt.AlignmentFlag.AlignCenter)
 
         self.gridLayout.addWidget(self.live_feed, 0, 1, 1, 1)
 
@@ -470,80 +473,79 @@ class Ui_MainWindow(object):
 
         self.verticalLayout_2.addLayout(self.horizontalLayout_6)
 
-        self.horizontalLayout_5 = QHBoxLayout()
-        self.horizontalLayout_5.setObjectName(u"horizontalLayout_5")
+        self.gridLayout_7 = QGridLayout()
+        self.gridLayout_7.setObjectName(u"gridLayout_7")
         self.select_label = QLabel(self.camera_properties_tab)
         self.select_label.setObjectName(u"select_label")
+        sizePolicy = QSizePolicy(QSizePolicy.Policy.Minimum, QSizePolicy.Policy.Preferred)
+        sizePolicy.setHorizontalStretch(0)
+        sizePolicy.setVerticalStretch(0)
+        sizePolicy.setHeightForWidth(self.select_label.sizePolicy().hasHeightForWidth())
+        self.select_label.setSizePolicy(sizePolicy)
 
-        self.horizontalLayout_5.addWidget(self.select_label)
+        self.gridLayout_7.addWidget(self.select_label, 0, 0, 1, 1)
 
         self.directory_label = QLabel(self.camera_properties_tab)
         self.directory_label.setObjectName(u"directory_label")
 
-        self.horizontalLayout_5.addWidget(self.directory_label)
+        self.gridLayout_7.addWidget(self.directory_label, 0, 1, 1, 1)
 
         self.directory_button = QToolButton(self.camera_properties_tab)
         self.directory_button.setObjectName(u"directory_button")
 
-        self.horizontalLayout_5.addWidget(self.directory_button)
+        self.gridLayout_7.addWidget(self.directory_button, 0, 2, 1, 1)
 
 
-        self.verticalLayout_2.addLayout(self.horizontalLayout_5)
+        self.verticalLayout_2.addLayout(self.gridLayout_7)
 
-        self.formLayout = QFormLayout()
-        self.formLayout.setObjectName(u"formLayout")
-        self.formLayout.setFormAlignment(Qt.AlignLeading|Qt.AlignLeft|Qt.AlignVCenter)
+        self.gridLayout_6 = QGridLayout()
+        self.gridLayout_6.setObjectName(u"gridLayout_6")
         self.exposure_label = QLabel(self.camera_properties_tab)
         self.exposure_label.setObjectName(u"exposure_label")
 
-        self.formLayout.setWidget(0, QFormLayout.LabelRole, self.exposure_label)
+        self.gridLayout_6.addWidget(self.exposure_label, 0, 0, 1, 1)
 
         self.exposure = QSpinBox(self.camera_properties_tab)
         self.exposure.setObjectName(u"exposure")
-        self.exposure.setAlignment(Qt.AlignRight|Qt.AlignTrailing|Qt.AlignVCenter)
-        self.exposure.setButtonSymbols(QAbstractSpinBox.NoButtons)
+        self.exposure.setAlignment(Qt.AlignmentFlag.AlignRight|Qt.AlignmentFlag.AlignTrailing|Qt.AlignmentFlag.AlignVCenter)
+        self.exposure.setButtonSymbols(QAbstractSpinBox.ButtonSymbols.NoButtons)
         self.exposure.setKeyboardTracking(False)
 
-        self.formLayout.setWidget(0, QFormLayout.FieldRole, self.exposure)
+        self.gridLayout_6.addWidget(self.exposure, 0, 1, 1, 1)
 
         self.frames_label = QLabel(self.camera_properties_tab)
         self.frames_label.setObjectName(u"frames_label")
 
-        self.formLayout.setWidget(1, QFormLayout.LabelRole, self.frames_label)
+        self.gridLayout_6.addWidget(self.frames_label, 1, 0, 1, 1)
 
         self.frames = QSpinBox(self.camera_properties_tab)
         self.frames.setObjectName(u"frames")
-        self.frames.setAlignment(Qt.AlignRight|Qt.AlignTrailing|Qt.AlignVCenter)
-        self.frames.setButtonSymbols(QAbstractSpinBox.NoButtons)
+        self.frames.setAlignment(Qt.AlignmentFlag.AlignRight|Qt.AlignmentFlag.AlignTrailing|Qt.AlignmentFlag.AlignVCenter)
+        self.frames.setButtonSymbols(QAbstractSpinBox.ButtonSymbols.NoButtons)
         self.frames.setKeyboardTracking(False)
         self.frames.setMinimum(1)
         self.frames.setMaximum(100)
 
-        self.formLayout.setWidget(1, QFormLayout.FieldRole, self.frames)
-
-
-        self.verticalLayout_2.addLayout(self.formLayout)
-
-        self.gridLayout_8 = QGridLayout()
-        self.gridLayout_8.setObjectName(u"gridLayout_8")
-        self.stop_button = QPushButton(self.camera_properties_tab)
-        self.stop_button.setObjectName(u"stop_button")
-        sizePolicy = QSizePolicy(QSizePolicy.Policy.Minimum, QSizePolicy.Policy.Fixed)
-        sizePolicy.setHorizontalStretch(0)
-        sizePolicy.setVerticalStretch(0)
-        sizePolicy.setHeightForWidth(self.stop_button.sizePolicy().hasHeightForWidth())
-        self.stop_button.setSizePolicy(sizePolicy)
-        self.stop_button.setLayoutDirection(Qt.LeftToRight)
-
-        self.gridLayout_8.addWidget(self.stop_button, 0, 1, 1, 1)
+        self.gridLayout_6.addWidget(self.frames, 1, 1, 1, 1)
 
         self.capture_button = QPushButton(self.camera_properties_tab)
         self.capture_button.setObjectName(u"capture_button")
 
-        self.gridLayout_8.addWidget(self.capture_button, 0, 0, 1, 1)
+        self.gridLayout_6.addWidget(self.capture_button, 2, 0, 1, 1)
+
+        self.stop_button = QPushButton(self.camera_properties_tab)
+        self.stop_button.setObjectName(u"stop_button")
+        sizePolicy1 = QSizePolicy(QSizePolicy.Policy.Minimum, QSizePolicy.Policy.Fixed)
+        sizePolicy1.setHorizontalStretch(0)
+        sizePolicy1.setVerticalStretch(0)
+        sizePolicy1.setHeightForWidth(self.stop_button.sizePolicy().hasHeightForWidth())
+        self.stop_button.setSizePolicy(sizePolicy1)
+        self.stop_button.setLayoutDirection(Qt.LayoutDirection.LeftToRight)
+
+        self.gridLayout_6.addWidget(self.stop_button, 2, 1, 1, 1)
 
 
-        self.verticalLayout_2.addLayout(self.gridLayout_8)
+        self.verticalLayout_2.addLayout(self.gridLayout_6)
 
         self.verticalSpacer_4 = QSpacerItem(20, 40, QSizePolicy.Policy.Minimum, QSizePolicy.Policy.MinimumExpanding)
 
@@ -553,16 +555,19 @@ class Ui_MainWindow(object):
         self.gridLayout.addLayout(self.verticalLayout_2, 0, 0, 1, 1)
 
         self.tabWidget.addTab(self.camera_properties_tab, "")
-        self.tab = QWidget()
-        self.tab.setObjectName(u"tab")
-        self.tabWidget.addTab(self.tab, "")
+        self.acquisition_tab = QWidget()
+        self.acquisition_tab.setObjectName(u"acquisition_tab")
+        self.tabWidget.addTab(self.acquisition_tab, "")
+        self.algorithm_tab = QWidget()
+        self.algorithm_tab.setObjectName(u"algorithm_tab")
+        self.tabWidget.addTab(self.algorithm_tab, "")
 
         self.horizontalLayout_3.addWidget(self.tabWidget)
 
         MainWindow.setCentralWidget(self.centralwidget)
         self.menubar = QMenuBar(MainWindow)
         self.menubar.setObjectName(u"menubar")
-        self.menubar.setGeometry(QRect(0, 0, 746, 22))
+        self.menubar.setGeometry(QRect(0, 0, 805, 33))
         self.menuFile = QMenu(self.menubar)
         self.menuFile.setObjectName(u"menuFile")
         MainWindow.setMenuBar(self.menubar)
@@ -574,7 +579,7 @@ class Ui_MainWindow(object):
 
         self.retranslateUi(MainWindow)
 
-        self.tabWidget.setCurrentIndex(1)
+        self.tabWidget.setCurrentIndex(2)
 
 
         QMetaObject.connectSlotsByName(MainWindow)
@@ -625,15 +630,16 @@ class Ui_MainWindow(object):
 #endif // QT_CONFIG(accessibility)
         self.cameras.setPlaceholderText(QCoreApplication.translate("MainWindow", u"No devices found", None))
         self.refresh_camera_button.setText(QCoreApplication.translate("MainWindow", u"Refresh", None))
-        self.select_label.setText(QCoreApplication.translate("MainWindow", u"Select directory", None))
+        self.select_label.setText(QCoreApplication.translate("MainWindow", u"Select Directory", None))
         self.directory_label.setText("")
         self.directory_button.setText(QCoreApplication.translate("MainWindow", u"...", None))
-        self.exposure_label.setText(QCoreApplication.translate("MainWindow", u"Exposure time [micro s]", None))
-        self.frames_label.setText(QCoreApplication.translate("MainWindow", u"N. frames", None))
-        self.stop_button.setText(QCoreApplication.translate("MainWindow", u"Stop", None))
+        self.exposure_label.setText(QCoreApplication.translate("MainWindow", u"Exposure Time [\u03bcs]", None))
+        self.frames_label.setText(QCoreApplication.translate("MainWindow", u"Number of Frames", None))
         self.capture_button.setText(QCoreApplication.translate("MainWindow", u"Capture", None))
+        self.stop_button.setText(QCoreApplication.translate("MainWindow", u"Stop", None))
         self.tabWidget.setTabText(self.tabWidget.indexOf(self.camera_properties_tab), QCoreApplication.translate("MainWindow", u"Camera Properties", None))
-        self.tabWidget.setTabText(self.tabWidget.indexOf(self.tab), QCoreApplication.translate("MainWindow", u"Ptychographic Algorithm", None))
+        self.tabWidget.setTabText(self.tabWidget.indexOf(self.acquisition_tab), QCoreApplication.translate("MainWindow", u"Ptychographic Acquisition", None))
+        self.tabWidget.setTabText(self.tabWidget.indexOf(self.algorithm_tab), QCoreApplication.translate("MainWindow", u"Ptychographic Algorithm", None))
         self.menuFile.setTitle(QCoreApplication.translate("MainWindow", u"File", None))
     # retranslateUi
 

@@ -16,7 +16,11 @@ p1: pg.PlotItem = win.addPlot(title="Fermat's Spiral & Ptychographic Trajectory"
 
 
 def create_fermat_spiral(
-    n_points: int = 119, radius: float = 10.0, shift: bool = False
+    n_points: int = 119,
+    radius: float = 10.0,
+    center_x: float = 0.0,
+    center_y: float = 0.0,
+    shift: bool = False,
 ) -> np.ndarray:
     """create_fermat_spiral summary
 
@@ -43,15 +47,15 @@ def create_fermat_spiral(
     theta: np.ndarray = golden_angle * n_index
 
     # convert to cartesian coordinates
-    x: np.float64 = r * np.cos(theta)
-    y: np.float64 = r * np.sin(theta)
+    x: np.float64 = r * np.cos(theta) + center_x
+    y: np.float64 = r * np.sin(theta) + center_y
 
     # shift image to (0, 0) => no negative coordinate points
     if shift:
         x -= np.min(x)
         y -= np.min(y)
 
-    coordinates: np.ndarray = np.vstack((x, y), dtype=np.float64).T
+    coordinates: np.ndarray = np.column_stack((x, y))
     return coordinates
 
 
