@@ -126,6 +126,15 @@ p1.plot(
     pxMode=False,
 )
 
+p1.plot(
+    coordinates[3][0],
+    coordinates[3][1],
+    pen=None,
+    name="current",
+    symbol="o",
+    symbolBrush="r",
+)
+
 trajectory: pg.PlotDataItem = p1.plot(shortest_path, pen="r", name="positive")
 
 if __name__ == "__main__":

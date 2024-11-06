@@ -6,9 +6,18 @@ from scipy.spatial.distance import cdist  # type: ignore
 
 # TODO: create path generator class, for paths creation to feed to the controller
 class Ptychography(QThread):
-    def __init__(self, d_handle, camera):
+    current_coordinate_signal = Signal(list)
+
+    def __init__(self, d_handle=None, camera=None):
+        super().__init__()
+
         self.d_handle = d_handle
         self.camera = camera
+        self.coordinates = None
+        self.directory = None
+        self.frames = None
+        self.center_z = 0  # nm
+        self.written = False
 
     def fermat_spiral(
         self,
@@ -111,26 +120,216 @@ class Ptychography(QThread):
 
         return trajectory
 
-    """# Enable the amplifier.
-    ctl.SetProperty_i32(d_handle, channel, ctl.Property.AMPLIFIER_ENABLED, ctl.TRUE)
-    # The hold time specifies how long the position is actively held after reaching the target.
-    # This property is also not persistent and set to zero by default.
-    # A value of 0 deactivates the hold time feature, the constant ctl.HOLD_TIME_INFINITE sets the time to infinite.
-    # (Until manually stopped by "Stop") Here we set the hold time to 1000 ms.
-    ctl.SetProperty_i32(d_handle, channel, ctl.Property.HOLD_TIME, 1000)
-    TODO: once found, hold indefinitely the z channel
-    for each movement hold position until image save is completed
-    """
+    def generate(self, x, y, radius):
+        self.coordinates = self.fermat_spiral(radius=radius, center_x=x, center_y=y)
 
-    # TODO: move -> take N pictures & average -> repeat until path is finished
+    @Slot(bool)
+    def is_written(self, written):
+        # print(f"written: {written}")
+        self.written = written
+
     # after requesting image save, in a while loop qthread sleep for 0.1 secs or less until signal written is true
     # then set done to true, remember to release the holding position of the stages
     # use ctl.WaitForEvent, check for event.type == ctl.EventType.MOVEMENT_FINISHED
     # start image acquisition in the if statement
-    def acquisition(self):
-        pass
 
-    # TODO: create ptychographic path and plot coordinate points
-    # for each step update point color and add circle with laser spot diameter, save and display averaged frame
+    def waitForEvent(self):
+        timeout = 100000  # in ms
+
+        while True:
+            try:
+                event = ctl.WaitForEvent(self.d_handle, timeout)
+
+                if event.type == ctl.EventType.MOVEMENT_FINISHED:
+                    t_handle = ctl.EventParameter.PARAM_HANDLE(event.i32)
+                    result_code = ctl.EventParameter.PARAM_RESULT(event.i32)
+                    if result_code == ctl.ErrorCode.NONE:
+                        print(f"MCS2 movement finished, handle: {t_handle}")
+                    else:
+                        # The command group failed -> the reason may be found in the result code.
+                        # To determine which command caused the error, read the individual results of the command
+                        # with "WaitForWrite" / "ReadProperty_x".
+                        print(
+                            f"MCS2 command group failed, handle: {t_handle}, error: 0x{result_code:04X} ({ctl.GetResultInfo(result_code)})"
+                        )
+                    break
+                else:
+                    # ignore other events and wait for the next one
+                    pass
+            except ctl.Error as e:
+                if e.code == ctl.ErrorCode.TIMEOUT:
+                    print(f"MCS2 wait for event timed out after {timeout} ms")
+                else:
+                    print(f"MCS2 {ctl.GetResultInfo(e.code)}")
+                return
+
+    def run(self):
+        try:
+            # check if d_handle and camera exist
+            if self.d_handle is not None and self.camera is not None:
+                self.camera.written_signal.connect(self.is_written)
+
+                # start acquisition sequence
+                self.acquisition()
+
+                # end of acquisition sequence
+                print("Successfully terminated acquisition sequence")
+            else:
+                raise Exception(
+                    "Failed to start procedure: either handle or camera not initialized"
+                )
+        except Exception as error:
+            print(error)
+
+    def acquisition(self):
+        r_id = [0] * 4
+        self.written = False
+
+        if self.coordinates is not None:
+            """# enable amplifier for each channel
+            t_handle = ctl.OpenCommandGroup(
+                self.d_handle, ctl.CmdGroupTriggerMode.DIRECT
+            )
+
+            r_id[0] = ctl.RequestWriteProperty_i32(
+                self.d_handle,
+                0,
+                ctl.Property.AMPLIFIER_ENABLED,
+                ctl.TRUE,
+                tHandle=t_handle,
+            )
+            r_id[1] = ctl.RequestWriteProperty_i32(
+                self.d_handle,
+                1,
+                ctl.Property.AMPLIFIER_ENABLED,
+                ctl.TRUE,
+                tHandle=t_handle,
+            )
+            r_id[2] = ctl.RequestWriteProperty_i32(
+                self.d_handle,
+                2,
+                ctl.Property.AMPLIFIER_ENABLED,
+                ctl.TRUE,
+                tHandle=t_handle,
+            )
+
+            # move z-stage to z-coordinate and hold position indefinitely (use ctl.Stop do release)
+            ctl.Move(self.d_handle, 2, self.center_z, tHandle=t_handle)
+            r_id[3] = ctl.RequestWriteProperty_i32(
+                self.d_handle,
+                2,
+                ctl.Property.HOLD_TIME,
+                ctl.HOLD_TIME_INFINITE,
+                tHandle=t_handle,
+            )
+
+            # close command group
+            ctl.CloseCommandGroup(self.d_handle, t_handle)
+
+            # optional
+            for id in r_id:
+                ctl.WaitForWrite(self.d_handle, id)
+
+            # wait for MOVEMENT_FINISHED
+            self.waitForEvent()
+            """
+
+            # move to coordinate, capture image, emit current coordinate
+            # TODO: set initial position as zero
+            for coordinate in self.coordinates:
+                # print(coordinate)
+                self.current_coordinate_signal.emit(coordinate)
+
+                # NOTE: might need to check for CMD_GROUP_TRIGGERED event
+                # move to coordinate and hold position (commandgroup)
+                """ t_handle = ctl.OpenCommandGroup(
+                    self.d_handle, ctl.CmdGroupTriggerMode.DIRECT
+                )
+
+                # move to coordinate
+                ctl.Move(self.d_handle, 0, coordinate[0], tHandle=t_handle)
+                ctl.Move(self.d_handle, 1, coordinate[1], tHandle=t_handle)
+
+                # hold position
+                r_id[0] = ctl.RequestWriteProperty_i32(
+                    self.d_handle,
+                    0,
+                    ctl.Property.HOLD_TIME,
+                    ctl.HOLD_TIME_INFINITE,
+                    tHandle=t_handle,
+                )
+                r_id[1] = ctl.RequestWriteProperty_i32(
+                    self.d_handle,
+                    1,
+                    ctl.Property.HOLD_TIME,
+                    ctl.HOLD_TIME_INFINITE,
+                    tHandle=t_handle,
+                )
+
+                ctl.CloseCommandGroup(self.d_handle, t_handle)
+
+                ctl.WaitForWrite(self.d_handle, r_id[0])
+                ctl.WaitForWrite(self.d_handle, r_id[1])
+                
+                # before acquiring image, check for MOVEMENT_FINISHED
+                self.waitForEvent()
+                """
+
+                # NOTE: might need to check whether movement_finished is true while it's still holding
+                # acquire images
+                self.camera.capture(self.directory, self.frames)
+
+                # wait until it's finished writing to file
+                while not self.written:
+                    print("not written")
+                    QThread.usleep(100)
+                print("written")
+
+                # release holding position for x-y stages
+                """ t_handle = ctl.OpenCommandGroup(
+                    self.d_handle, ctl.CmdGroupTriggerMode.DIRECT
+                )
+
+                ctl.Stop(self.d_handle, 0, tHandle=t_handle)
+                ctl.Stop(self.d_handle, 1, tHandle=t_handle)
+
+                ctl.CloseCommandGroup(self.d_handle, t_handle) """
+
+                self.written = False
+
+            # stop holding z-stage, disable amplifiers
+            """ t_handle = ctl.OpenCommandGroup(
+                self.d_handle, ctl.CmdGroupTriggerMode.DIRECT
+            )
+
+            ctl.Stop(self.d_handle, 2, tHandle=t_handle) """
+
+            # TODO: check if amplifier needs to be disabled
+            """ r_id[0] = ctl.RequestWriteProperty_i32(
+                self.d_handle,
+                0,
+                ctl.Property.AMPLIFIER_ENABLED,
+                ctl.FALSE,
+                tHandle=t_handle,
+            )
+            r_id[1] = ctl.RequestWriteProperty_i32(
+                self.d_handle,
+                1,
+                ctl.Property.AMPLIFIER_ENABLED,
+                ctl.FALSE,
+                tHandle=t_handle,
+            )
+            r_id[2] = ctl.RequestWriteProperty_i32(
+                self.d_handle,
+                2,
+                ctl.Property.AMPLIFIER_ENABLED,
+                ctl.FALSE,
+                tHandle=t_handle,
+            ) """
+
+            """ ctl.CloseCommandGroup(self.d_handle, t_handle) """
+
+        else:
+            raise Exception("No coordinates present, generate them first")
 
     # TODO: merge saved photos with given overlap and apply Phase Retrieval Algorithm

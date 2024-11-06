@@ -30,3 +30,4 @@ stitched_image_optimized2.png
 stitching.py
 __pycache__/camera.cpython-312.pyc
 __pycache__/controller.cpython-312.pyc
+__pycache__/ptychography.cpython-312.pyc

@@ -22,6 +22,7 @@ class ScientificCamera(QThread):
     # Emit signal with processed frame/s,
     frame_signal = Signal(QImage)
     model_signal = Signal(str)
+    written_signal = Signal(bool)
     stop = False
     debug = False
     exposure_flag = False
@@ -33,6 +34,7 @@ class ScientificCamera(QThread):
 
             i = 0
             frames = []
+            self.model_signal.emit("Thorcam")
 
             while self.cap.isOpened():
                 _, frame = self.cap.read()
@@ -49,10 +51,13 @@ class ScientificCamera(QThread):
                         final_image = np.array(
                             np.mean(frames, axis=(0)), dtype=np.uint8
                         )
-                        cv2.imwrite(
+                        written = cv2.imwrite(
                             os.path.join(self.directory, "image_directory.png"),
                             final_image,
                         )
+
+                        self.written_signal.emit(written)
+
                         i = 0
                         frames = []
                         self.is_captured = False
@@ -70,7 +75,7 @@ class ScientificCamera(QThread):
 
                 # Return if no cameras detected
                 if len(available_cameras) < 1:
-                    self.model_signal.emit("Thorcam")
+                    # self.model_signal.emit("Thorcam")
                     print("no cameras detected")
                     return
 
@@ -156,7 +161,8 @@ class ScientificCamera(QThread):
                                             final_image,
                                         )
 
-                                        # TODO: send signal for written
+                                        # send signal for written and bind it to ptychography module
+                                        self.written_signal.emit(written)
 
                                         i = 0
                                         imaging_index += 1
