@@ -4,7 +4,9 @@ import numpy as np
 import smaract.ctl as ctl  # type: ignore
 from PySide6.QtCore import QObject, QTimer, Signal, Slot
 
-DEBUG = True
+CHANNEL_X = 1
+CHANNEL_Y = 2
+CHANNEL_Z = 0
 
 
 class Signals(QObject):
@@ -17,6 +19,16 @@ class Signals(QObject):
 
 # NOTE: when the controller boots, the initial position is set to zero whatever physical position it is in.
 # therefore referencing is needed + set new zeroth position
+
+# NOTE: no need for qthread due to connection to controller already async (and commands -> they're sent sync but processed async)
+
+# NOTE: COMMAND_GROUPs work really well! use as much as possible to ensure best reactivity
+
+# NOTE: to guarantee precise movement position first select movement mode (in this case RELATIVE_MODE)
+
+# TODO: convert from nanometer to micrometer as per Prof's request -> use DoubleSpinBox
+
+
 class MCS2_Controller:
     def __init__(self):
         self.signals = Signals()
@@ -28,9 +40,6 @@ class MCS2_Controller:
         self.timer.setInterval(750)  # ms
         self.timer.timeout.connect(self.update_data)
 
-        self.timer.start()
-
-        # self.signals.error.emit("alpha")
         # check version and compability
         print("*******************************************************")
         print("*               SmarAct MCS2 Controller               *")
@@ -43,10 +52,10 @@ class MCS2_Controller:
         # Find available MCS2 devices
         try:
             buffer = ctl.FindDevices()
+            # locator = "network:192.168.7.8"
 
             if len(buffer) == 0:
                 self.signals.error.emit("MCS2 no devices found.")
-                self.signals.default.emit([1000000, 100000000])  # TEMPORARY
                 print("MCS2 no devices found.")
                 return
 
@@ -60,54 +69,78 @@ class MCS2_Controller:
                 self.d_handle = ctl.Open(locator)
                 self.r_id = [0] * 9
 
-                # TODO: emit d_handle for ptychography module
-
                 base_unit = ctl.GetProperty_i32(
-                    self.d_handle, 0, ctl.Property.POS_BASE_UNIT
+                    self.d_handle, CHANNEL_X, ctl.Property.POS_BASE_UNIT
                 )
 
-                position = ctl.GetProperty_i64(self.d_handle, 0, ctl.Property.POSITION)
-                # self.signals.pos.emit(position)
-                print(f"MCS2 position of channel {0}: {position}", end="")
+                position = ctl.GetProperty_i64(
+                    self.d_handle, CHANNEL_Z, ctl.Property.POSITION
+                )
+                print(f"MCS2 position of channel {CHANNEL_Z}: {position}", end="")
                 print("pm.") if base_unit == ctl.BaseUnit.METER else print("ndeg.")
+
+                # start timer
+                self.timer.start()
 
                 default_velocity = 1_000_000_000
                 default_acceleration = 10_000_000_000
 
+                t_handle = ctl.OpenCommandGroup(
+                    self.d_handle, ctl.CmdGroupTriggerMode.DIRECT
+                )
+
                 # default velocity for all channels [in pm/s]
-                ctl.SetProperty_i64(
-                    self.d_handle, 0, ctl.Property.MOVE_VELOCITY, default_velocity
+                ctl.RequestWriteProperty_i64(
+                    self.d_handle,
+                    CHANNEL_X,
+                    ctl.Property.MOVE_VELOCITY,
+                    default_velocity,
+                    tHandle=t_handle,
                 )
-                ctl.SetProperty_i64(
-                    self.d_handle, 1, ctl.Property.MOVE_VELOCITY, default_velocity
+                ctl.RequestWriteProperty_i64(
+                    self.d_handle,
+                    CHANNEL_Y,
+                    ctl.Property.MOVE_VELOCITY,
+                    default_velocity,
+                    tHandle=t_handle,
                 )
-                ctl.SetProperty_i64(
-                    self.d_handle, 2, ctl.Property.MOVE_VELOCITY, default_velocity
+                ctl.RequestWriteProperty_i64(
+                    self.d_handle,
+                    CHANNEL_Z,
+                    ctl.Property.MOVE_VELOCITY,
+                    default_velocity,
+                    tHandle=t_handle,
                 )
 
                 # default acceleration for all channels [in pm/s2]
-                ctl.SetProperty_i64(
+                ctl.RequestWriteProperty_i64(
                     self.d_handle,
-                    0,
+                    CHANNEL_X,
                     ctl.Property.MOVE_ACCELERATION,
                     default_acceleration,
+                    tHandle=t_handle,
                 )
-                ctl.SetProperty_i64(
+                ctl.RequestWriteProperty_i64(
                     self.d_handle,
-                    1,
+                    CHANNEL_Y,
                     ctl.Property.MOVE_ACCELERATION,
                     default_acceleration,
+                    tHandle=t_handle,
                 )
-                ctl.SetProperty_i64(
+                ctl.RequestWriteProperty_i64(
                     self.d_handle,
-                    2,
+                    CHANNEL_Z,
                     ctl.Property.MOVE_ACCELERATION,
                     default_acceleration,
+                    tHandle=t_handle,
                 )
 
-                # TODO: update interface with default velocity and acceleration
-                self.signals.default.emit([default_velocity, default_acceleration])
-                print(default_velocity)
+                ctl.CloseCommandGroup(self.d_handle, t_handle)
+
+                # update interface with default velocity and acceleration
+                self.signals.default.emit(
+                    [default_velocity / 1e6, default_acceleration / 1e6]
+                )
 
                 # start data acquisition
                 self.timer.start()
@@ -177,55 +210,56 @@ class MCS2_Controller:
                     print(f"MCS2 {ctl.GetResultInfo(e.code)}")
                 return
 
+    # position is in micrometers -> convert to picometers
     def set_position(self, channel, position):
-        if channel == 0:
+        if channel == CHANNEL_X:
             ctl.SetProperty_i64(
-                self.d_handle, channel, ctl.Property.POSITION * 1000, position
+                self.d_handle, channel, ctl.Property.POSITION, int(position * 1e6)
             )
-        if channel == 1:
+        if channel == CHANNEL_Y:
             ctl.SetProperty_i64(
-                self.d_handle, channel, ctl.Property.POSITION * 1000, position
+                self.d_handle, channel, ctl.Property.POSITION, int(position * 1e6)
             )
-        if channel == 2:
+        if channel == CHANNEL_Z:
             ctl.SetProperty_i64(
-                self.d_handle, channel, ctl.Property.POSITION * 1000, position
+                self.d_handle, channel, ctl.Property.POSITION, int(position * 1e6)
             )
 
     def set_velocity(self, channel, velocity):
-        if channel == 0:
+        if channel == CHANNEL_X:
             ctl.SetProperty_i64(
-                self.d_handle, channel, ctl.Property.MOVE_VELOCITY * 1000, velocity
+                self.d_handle, channel, ctl.Property.MOVE_VELOCITY, int(velocity * 1e6)
             )
-        if channel == 1:
+        if channel == CHANNEL_Y:
             ctl.SetProperty_i64(
-                self.d_handle, channel, ctl.Property.MOVE_VELOCITY * 1000, velocity
+                self.d_handle, channel, ctl.Property.MOVE_VELOCITY, int(velocity * 1e6)
             )
-        if channel == 2:
+        if channel == CHANNEL_Z:
             ctl.SetProperty_i64(
-                self.d_handle, channel, ctl.Property.MOVE_VELOCITY * 1000, velocity
+                self.d_handle, channel, ctl.Property.MOVE_VELOCITY, int(velocity * 1e6)
             )
 
     def set_acceleration(self, channel, acceleration):
-        if channel == 0:
+        if channel == CHANNEL_X:
             ctl.SetProperty_i64(
                 self.d_handle,
                 channel,
-                ctl.Property.MOVE_ACCELERATION * 1000,
-                acceleration,
+                ctl.Property.MOVE_ACCELERATION,
+                int(acceleration * 1e6),
             )
-        if channel == 1:
+        if channel == CHANNEL_Y:
             ctl.SetProperty_i64(
                 self.d_handle,
                 channel,
-                ctl.Property.MOVE_ACCELERATION * 1000,
-                acceleration,
+                ctl.Property.MOVE_ACCELERATION,
+                int(acceleration * 1e6),
             )
-        if channel == 2:
+        if channel == CHANNEL_Z:
             ctl.SetProperty_i64(
                 self.d_handle,
                 channel,
-                ctl.Property.MOVE_ACCELERATION * 1000,
-                acceleration,
+                ctl.Property.MOVE_ACCELERATION,
+                int(acceleration * 1e6),
             )
 
     @Slot(int)
@@ -238,21 +272,21 @@ class MCS2_Controller:
 
             self.r_id[0] = ctl.RequestWriteProperty_i32(
                 self.d_handle,
-                0,
+                CHANNEL_X,
                 ctl.Property.MOVE_MODE,
                 ctl.MoveMode.CL_ABSOLUTE,
                 tHandle=t_handle,
             )
             self.r_id[1] = ctl.RequestWriteProperty_i32(
                 self.d_handle,
-                1,
+                CHANNEL_Y,
                 ctl.Property.MOVE_MODE,
                 ctl.MoveMode.CL_ABSOLUTE,
                 tHandle=t_handle,
             )
             self.r_id[2] = ctl.RequestWriteProperty_i32(
                 self.d_handle,
-                2,
+                CHANNEL_Z,
                 ctl.Property.MOVE_MODE,
                 ctl.MoveMode.CL_ABSOLUTE,
                 tHandle=t_handle,
@@ -266,7 +300,7 @@ class MCS2_Controller:
                 ctl.WaitForWrite(self.d_handle, self.r_id[i])
 
             print(
-                f"Movement Mode: {ctl.GetProperty_i32(self.d_handle, 0, ctl.Property.MOVE_MODE)} ABSOLUTE"
+                f"Movement Mode: {ctl.GetProperty_i32(self.d_handle, CHANNEL_X, ctl.Property.MOVE_MODE)} ABSOLUTE"
             )
 
         if mode == 1:  # RELATIVE mode
@@ -277,21 +311,21 @@ class MCS2_Controller:
 
             self.r_id[0] = ctl.RequestWriteProperty_i32(
                 self.d_handle,
-                0,
+                CHANNEL_X,
                 ctl.Property.MOVE_MODE,
                 ctl.MoveMode.CL_RELATIVE,
                 tHandle=t_handle,
             )
             self.r_id[1] = ctl.RequestWriteProperty_i32(
                 self.d_handle,
-                1,
+                CHANNEL_Y,
                 ctl.Property.MOVE_MODE,
                 ctl.MoveMode.CL_RELATIVE,
                 tHandle=t_handle,
             )
             self.r_id[2] = ctl.RequestWriteProperty_i32(
                 self.d_handle,
-                2,
+                CHANNEL_Z,
                 ctl.Property.MOVE_MODE,
                 ctl.MoveMode.CL_RELATIVE,
                 tHandle=t_handle,
@@ -305,7 +339,7 @@ class MCS2_Controller:
                 ctl.WaitForWrite(self.d_handle, self.r_id[i])
 
             print(
-                f"Movement Mode: {ctl.GetProperty_i32(self.d_handle, 0, ctl.Property.MOVE_MODE)} RELATIVE"
+                f"Movement Mode: {ctl.GetProperty_i32(self.d_handle, CHANNEL_X, ctl.Property.MOVE_MODE)} RELATIVE"
             )
 
     @Slot()
@@ -316,76 +350,76 @@ class MCS2_Controller:
         # set referencing option to auto-zero
         self.r_id[0] = ctl.RequestWriteProperty_i32(
             self.d_handle,
-            0,
+            CHANNEL_X,
             ctl.Property.REFERENCING_OPTIONS,
             ctl.ReferencingOption.AUTO_ZERO,
             tHandle=t_handle,
         )
         self.r_id[1] = ctl.RequestWriteProperty_i32(
             self.d_handle,
-            1,
+            CHANNEL_Y,
             ctl.Property.REFERENCING_OPTIONS,
             ctl.ReferencingOption.AUTO_ZERO,
             tHandle=t_handle,
         )
         self.r_id[2] = ctl.RequestWriteProperty_i32(
             self.d_handle,
-            2,
+            CHANNEL_Z,
             ctl.Property.REFERENCING_OPTIONS,
             ctl.ReferencingOption.AUTO_ZERO,
             tHandle=t_handle,
         )
 
-        # Set velocity to 1mm/s
+        """ # Set velocity to 1mm/s
         self.r_id[3] = ctl.RequestWriteProperty_i64(
             self.d_handle,
-            0,
+            CHANNEL_X,
             ctl.Property.MOVE_VELOCITY,
-            1_000_000_000,
+            10_000_000_000,
             tHandle=t_handle,
         )
         self.r_id[4] = ctl.RequestWriteProperty_i64(
             self.d_handle,
-            1,
+            CHANNEL_Y,
             ctl.Property.MOVE_VELOCITY,
-            1_000_000_000,
+            10_000_000_000,
             tHandle=t_handle,
         )
         self.r_id[5] = ctl.RequestWriteProperty_i64(
             self.d_handle,
-            2,
+            CHANNEL_Z,
             ctl.Property.MOVE_VELOCITY,
-            1_000_000_000,
+            10_000_000_000,
             tHandle=t_handle,
         )
 
         # Set acceleration to 10mm/s2.
         self.r_id[6] = ctl.RequestWriteProperty_i64(
             self.d_handle,
-            0,
+            CHANNEL_X,
             ctl.Property.MOVE_ACCELERATION,
-            10_000_000_000,
+            100_000_000_000,
             tHandle=t_handle,
         )
         self.r_id[7] = ctl.RequestWriteProperty_i64(
             self.d_handle,
-            1,
+            CHANNEL_Y,
             ctl.Property.MOVE_ACCELERATION,
             10_000_000_000,
             tHandle=t_handle,
         )
         self.r_id[8] = ctl.RequestWriteProperty_i64(
             self.d_handle,
-            2,
+            CHANNEL_Z,
             ctl.Property.MOVE_ACCELERATION,
             10_000_000_000,
             tHandle=t_handle,
-        )
+        ) """
 
         # Start referencing sequence
-        ctl.Reference(self.d_handle, 0, tHandle=t_handle)
-        ctl.Reference(self.d_handle, 1, tHandle=t_handle)
-        ctl.Reference(self.d_handle, 2, tHandle=t_handle)
+        ctl.Reference(self.d_handle, CHANNEL_X, tHandle=t_handle)
+        ctl.Reference(self.d_handle, CHANNEL_Y, tHandle=t_handle)
+        ctl.Reference(self.d_handle, CHANNEL_Z, tHandle=t_handle)
 
         # close command group
         ctl.CloseCommandGroup(self.d_handle, t_handle)
@@ -394,30 +428,7 @@ class MCS2_Controller:
         for id in self.r_id:
             ctl.WaitForWrite(self.d_handle, id)
 
-        # position = ctl.GetProperty_i64(self.d_handle, 0, ctl.Property.POSITION)
-        # self.signals.pos.emit(position)
-
-        # TODO: set position to zero after referencing
-        # open command group
-        """ t_handle = ctl.OpenCommandGroup(self.d_handle, ctl.CmdGroupTriggerMode.DIRECT)
-
-        self.r_id[0] = ctl.RequestWriteProperty_i64(
-            self.d_handle, 0, ctl.Property.POSITION, 0, tHandle=t_handle
-        )
-        self.r_id[1] = ctl.RequestWriteProperty_i64(
-            self.d_handle, 1, ctl.Property.POSITION, 0, tHandle=t_handle
-        )
-        self.r_id[2] = ctl.RequestWriteProperty_i64(
-            self.d_handle, 2, ctl.Property.POSITION, 0, tHandle=t_handle
-        )
-
-        # close command group
-        ctl.CloseCommandGroup(self.d_handle, t_handle)
-
-        # optional: block and wait for event
-        self.waitForEvent()
-        for i in range(3):
-            ctl.WaitForWrite(self.d_handle, self.r_id[i]) """
+        # with AUTO_ZERO no need to set position to zero after referencing
 
     @Slot()
     def calibrate(self):
@@ -427,30 +438,30 @@ class MCS2_Controller:
         # set calibration option for each channel
         self.r_id[0] = ctl.RequestWriteProperty_i32(
             self.d_handle,
-            0,
+            CHANNEL_X,
             ctl.Property.CALIBRATION_OPTIONS,
             ctl.CalibrationOption.DIRECTION,
             tHandle=t_handle,
         )
         self.r_id[1] = ctl.RequestWriteProperty_i32(
             self.d_handle,
-            1,
+            CHANNEL_Y,
             ctl.Property.CALIBRATION_OPTIONS,
             ctl.CalibrationOption.DIRECTION,
             tHandle=t_handle,
         )
         self.r_id[2] = ctl.RequestWriteProperty_i32(
             self.d_handle,
-            2,
+            CHANNEL_Z,
             ctl.Property.CALIBRATION_OPTIONS,
             ctl.CalibrationOption.DIRECTION,
             tHandle=t_handle,
         )
 
         # Start calibration sequence
-        ctl.Calibrate(self.d_handle, 0, tHandle=t_handle)
-        ctl.Calibrate(self.d_handle, 1, tHandle=t_handle)
-        ctl.Calibrate(self.d_handle, 2, tHandle=t_handle)
+        ctl.Calibrate(self.d_handle, CHANNEL_X, tHandle=t_handle)
+        ctl.Calibrate(self.d_handle, CHANNEL_Y, tHandle=t_handle)
+        ctl.Calibrate(self.d_handle, CHANNEL_Z, tHandle=t_handle)
 
         # close command group
         ctl.CloseCommandGroup(self.d_handle, t_handle)
@@ -461,21 +472,22 @@ class MCS2_Controller:
             ctl.WaitForWrite(self.d_handle, self.r_id[i])
 
         """ # TODO: write as command group
-        position_x = ctl.GetProperty_i64(self.d_handle, 0, ctl.Property.POSITION)
-        position_y = ctl.GetProperty_i64(self.d_handle, 1, ctl.Property.POSITION)
-        position_z = ctl.GetProperty_i64(self.d_handle, 2, ctl.Property.POSITION)
+        position_x = ctl.GetProperty_i64(self.d_handle, CHANNEL_X, ctl.Property.POSITION)
+        position_y = ctl.GetProperty_i64(self.d_handle, CHANNEL_Y, ctl.Property.POSITION)
+        position_z = ctl.GetProperty_i64(self.d_handle, CHANNEL_Z, ctl.Property.POSITION)
 
         position = [position_x, position_y, position_z]
 
         self.signals.update_data.emit(position) """
 
+    # TODO: convert from microm to pm
     def move(self, positions):
         # open command group
         t_handle = ctl.OpenCommandGroup(self.d_handle, ctl.CmdGroupTriggerMode.DIRECT)
 
-        ctl.Move(self.d_handle, 0, positions[0], tHandle=t_handle)
-        ctl.Move(self.d_handle, 1, positions[1], tHandle=t_handle)
-        ctl.Move(self.d_handle, 2, positions[2], tHandle=t_handle)
+        ctl.Move(self.d_handle, CHANNEL_X, int(positions[0] * 1e6), tHandle=t_handle)
+        ctl.Move(self.d_handle, CHANNEL_Y, int(positions[1] * 1e6), tHandle=t_handle)
+        ctl.Move(self.d_handle, CHANNEL_Z, int(positions[2] * 1e6), tHandle=t_handle)
 
         # close command group
         ctl.CloseCommandGroup(self.d_handle, t_handle)
@@ -483,38 +495,38 @@ class MCS2_Controller:
         # optional: block and wait for event
         self.waitForEvent()
 
-        print(f"MCS2 move channel 0 to absolute position: {positions[0]} pm.")
+        print(f"MCS2 move channel 0 to absolute relative: {positions[0]} pm.")
 
     def increase(self, channel, increment):
-        if channel == 0:
-            print(f"channel: {channel}, increment: {increment}")
-            ctl.Move(self.d_handle, channel, increment * 1000)
-        if channel == 1:
-            print(f"channel: {channel}, increment: {increment}")
-            ctl.Move(self.d_handle, channel, increment * 1000)
-        if channel == 2:
-            print(f"channel: {channel}, increment: {increment}")
-            ctl.Move(self.d_handle, channel, increment * 1000)
+        if channel == CHANNEL_X:
+            print(f"channel: {channel}, increment: {increment* 1e6}")
+            ctl.Move(self.d_handle, channel, int(increment * 1e6))
+        if channel == CHANNEL_Y:
+            print(f"channel: {channel}, increment: {increment* 1e6}")
+            ctl.Move(self.d_handle, channel, int(increment * 1e6))
+        if channel == CHANNEL_Z:
+            print(f"channel: {channel}, increment: {increment* 1e6}")
+            ctl.Move(self.d_handle, channel, int(increment * 1e6))
 
     def decrease(self, channel, increment):
-        if channel == 0:
-            print(f"channel: {channel}, increment: {increment}")
-            ctl.Move(self.d_handle, channel, -increment * 1000)
-        if channel == 1:
-            print(f"channel: {channel}, increment: {increment}")
-            ctl.Move(self.d_handle, channel, -increment * 1000)
-        if channel == 2:
-            print(f"channel: {channel}, increment: {increment}")
-            ctl.Move(self.d_handle, channel, -increment * 1000)
+        if channel == CHANNEL_X:
+            print(f"channel: {channel}, increment: {increment* 1e6}")
+            ctl.Move(self.d_handle, channel, int(-increment * 1e6))
+        if channel == CHANNEL_Y:
+            print(f"channel: {channel}, increment: {increment* 1e6}")
+            ctl.Move(self.d_handle, channel, int(-increment * 1e6))
+        if channel == CHANNEL_Z:
+            print(f"channel: {channel}, increment: {increment* 1e6}")
+            ctl.Move(self.d_handle, channel, int(-increment * 1e6))
 
     def abort(self):
         # close all channels at the same time
         # open command group
         t_handle = ctl.OpenCommandGroup(self.d_handle, ctl.CmdGroupTriggerMode.DIRECT)
 
-        ctl.Stop(self.d_handle, 0, tHandle=t_handle)
-        ctl.Stop(self.d_handle, 1, tHandle=t_handle)
-        ctl.Stop(self.d_handle, 2, tHandle=t_handle)
+        ctl.Stop(self.d_handle, CHANNEL_X, tHandle=t_handle)
+        ctl.Stop(self.d_handle, CHANNEL_Y, tHandle=t_handle)
+        ctl.Stop(self.d_handle, CHANNEL_Z, tHandle=t_handle)
 
         # close command group
         ctl.CloseCommandGroup(self.d_handle, t_handle)
@@ -524,41 +536,31 @@ class MCS2_Controller:
 
         print("MCS2 stop channels.")
 
+    # convert from pm to microm
     def update_data(self):
-        """# open command group
+        # open command group
         t_handle = ctl.OpenCommandGroup(self.d_handle, ctl.CmdGroupTriggerMode.DIRECT)
 
         self.r_id[0] = ctl.RequestReadProperty(
-            self.d_handle, 0, ctl.Property.POSITION, tHandle=t_handle
+            self.d_handle, CHANNEL_X, ctl.Property.POSITION, tHandle=t_handle
         )
         self.r_id[1] = ctl.RequestReadProperty(
-            self.d_handle, 1, ctl.Property.POSITION, tHandle=t_handle
+            self.d_handle, CHANNEL_Y, ctl.Property.POSITION, tHandle=t_handle
         )
         self.r_id[2] = ctl.RequestReadProperty(
-            self.d_handle, 2, ctl.Property.POSITION, tHandle=t_handle
+            self.d_handle, CHANNEL_Z, ctl.Property.POSITION, tHandle=t_handle
         )
 
         ctl.CloseCommandGroup(self.d_handle, t_handle)
 
-        # Wait for the "triggered" event before reading the results
-        self.waitForEvent()
+        # DO NOT Wait for the "triggered" event before reading the results -> slows down GUI
+        # self.waitForEvent()
 
-        position_x = ctl.ReadProperty_i64(self.d_handle, self.r_id[0])
-        position_y = ctl.ReadProperty_i64(self.d_handle, self.r_id[1])
-        position_z = ctl.ReadProperty_i64(self.d_handle, self.r_id[2])"""
+        # TODO: remember to send float to 2 decimals
+        position_x = ctl.ReadProperty_i64(self.d_handle, self.r_id[0]) / 1e6
+        position_y = ctl.ReadProperty_i64(self.d_handle, self.r_id[1]) / 1e6
+        position_z = ctl.ReadProperty_i64(self.d_handle, self.r_id[2]) / 1e6
 
-        # position_x = ctl.GetProperty_i64(self.d_handle, 0, ctl.Property.POSITION)
-        # position_y = ctl.GetProperty_i64(self.d_handle, 1, ctl.Property.POSITION)
-        # position_z = ctl.GetProperty_i64(self.d_handle, 2, ctl.Property.POSITION)
-
-        # position = [position_x, position_y, position_z]
-
-        position = [
-            np.random.randint(0, 1000000),
-            np.random.randint(0, 1000000),
-            np.random.randint(0, 1000000),
-        ]
+        position = [position_x, position_y, position_z]
 
         self.signals.update_data.emit(position)
-
-    # TODO: when dhandle is created, emit signal with handle and slot it to creation of path generator (dhandle, camera)

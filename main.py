@@ -1,141 +1,29 @@
+import cv2
 import numpy as np
-import pyqtgraph as pg  # type: ignore
-from scipy.spatial.distance import cdist  # type: ignore
+from instrumental.drivers.cameras import uc480
 
-# TODO: IMPLEMENT MVP/MVVM Architecture + Observer Pattern for asynchronous model updates
+# init camera
+instruments = uc480.list_instruments()
+cam = uc480.UC480_pyCamera(instruments[0])
 
-# create window
-win: pg.GraphicsLayoutWidget = pg.GraphicsLayoutWidget(
-    show=True, title="Vogel's Spiral"
-)
+# params
+cam.start_live_video(framerate="10Hz")
 
-win.resize(600, 600)
-pg.setConfigOptions(antialias=True)  # enable antialiasing
+while cam.is_open:
 
-p1: pg.PlotItem = win.addPlot(title="Fermat's Spiral & Ptychographic Trajectory")
+    frame = cam.grab_image(timeout="100s", copy=True, exposure_time="10ms")
 
+    frame1 = np.stack((frame,) * 3, -1)  # make frame as 1 channel image
+    frame1 = frame1.astype(np.uint8)
 
-def create_fermat_spiral(
-    n_points: int = 119,
-    radius: float = 10.0,
-    center_x: float = 0.0,
-    center_y: float = 0.0,
-    shift: bool = False,
-) -> np.ndarray:
-    """create_fermat_spiral summary
+    gray = cv2.cvtColor(frame1, cv2.COLOR_BGR2GRAY)
 
-    Parameters
-    ----------
-    n_points : int, optional
-        Number of points in the Vogel's spiral, by default 119
-    radius : float, optional
-        Radius of the spiral and scaling factor of distance between points, by default 10.0
-    shift : bool, optional
-        Translate all points to the first quadrant, by default False
+    # now u can apply opencv features
 
-    Returns
-    -------
-    np.ndarray
-        Array of the cartesian coordinates of the points in the Vogel's spiral
-    """
-    # initialize fermat spiral's polar parameters
-    # by dividing n_index by n_points the graph becomes normalized,
-    # then multiplying by the radius gives the desired size
-    n_index: np.ndarray = np.arange(0, n_points - 1)
-    r: np.float64 = radius * np.sqrt(n_index / n_points)
-    golden_angle: np.float64 = np.pi * (3 - np.sqrt(5))
-    theta: np.ndarray = golden_angle * n_index
+    cv2.imshow("Camera", gray)
 
-    # convert to cartesian coordinates
-    x: np.float64 = r * np.cos(theta) + center_x
-    y: np.float64 = r * np.sin(theta) + center_y
+    if cv2.waitKey(30) & 0xFF == ord("q"):
+        break
 
-    # shift image to (0, 0) => no negative coordinate points
-    if shift:
-        x -= np.min(x)
-        y -= np.min(y)
-
-    coordinates: np.ndarray = np.column_stack((x, y))
-    return coordinates
-
-
-def order_by_distance(point: np.ndarray, coordinates: np.ndarray) -> np.ndarray:
-    index: np.ndarray = cdist([point], coordinates, "sqeuclidean")
-
-    if index.size > 0:
-        result: np.ndarray = coordinates[index.argmin()]
-        return result
-
-    return np.empty(shape=(1, 2))
-
-
-# voglio fare uno scan con una certa taglia, con un passo tra r/2 & r/3 (1micron)
-# misura dimensione di fascio (3 micron circa ) knife edge -> misura diametro
-def create_trajectory(initial_point: np.ndarray, coordinates: np.ndarray) -> np.ndarray:
-    size: int = 0
-    current_coordinates: np.ndarray = coordinates
-    sorted_coordinates: np.ndarray = np.array([initial_point], dtype=np.float64)
-
-    while size < coordinates.size // 2:
-        # much faster:
-        mask: np.ndarray = (
-            cdist(current_coordinates, sorted_coordinates, "sqeuclidean") == 0
-        )
-        current_coordinates = np.delete(current_coordinates, mask.any(axis=1), axis=0)
-
-        result: np.ndarray = order_by_distance(
-            sorted_coordinates[-1], current_coordinates
-        )
-        sorted_coordinates = np.vstack([sorted_coordinates, result], dtype=np.float64)
-
-        size += 1
-
-    return sorted_coordinates
-
-
-# algorithm to find the shortest trajectory based on the initial point, then choose that trajectory
-def shortest_trajectory(coordinates: np.ndarray) -> np.ndarray:
-    distances: np.ndarray = np.array([], dtype=np.float64)
-
-    for point in coordinates:
-        diff: np.ndarray = np.diff(create_trajectory(point, coordinates), axis=0)
-        total_distance: np.ndarray = np.hypot(diff[:, 0], diff[:, 1]).sum()
-        distances = np.append(distances, total_distance)
-
-    trajectory: np.ndarray = create_trajectory(
-        coordinates[distances.argmin()], coordinates
-    )
-
-    return trajectory
-
-
-coordinates: np.ndarray = create_fermat_spiral()
-shortest_path: np.ndarray = shortest_trajectory(coordinates)
-
-p1.plot(
-    coordinates, pen=None, name="positive", symbol="o", symbolBrush="g", symbolPen="r"
-)
-p1.plot(
-    coordinates,
-    pen=None,
-    name="Circles",
-    symbol="o",
-    symbolBrush=None,
-    symbolPen="b",
-    symbolSize=2,
-    pxMode=False,
-)
-
-p1.plot(
-    coordinates[3][0],
-    coordinates[3][1],
-    pen=None,
-    name="current",
-    symbol="o",
-    symbolBrush="r",
-)
-
-trajectory: pg.PlotDataItem = p1.plot(shortest_path, pen="r", name="positive")
-
-if __name__ == "__main__":
-    pg.exec()
+cam.close()
+cv2.destroyAllWindows()

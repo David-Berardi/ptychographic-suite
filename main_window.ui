@@ -18,7 +18,7 @@
     <item>
      <widget class="QTabWidget" name="tabWidget">
       <property name="currentIndex">
-       <number>2</number>
+       <number>0</number>
       </property>
       <widget class="QWidget" name="actuator_properties_tab">
        <attribute name="title">
@@ -170,12 +170,12 @@
             <item row="0" column="0">
              <widget class="QLabel" name="step_size_1_label">
               <property name="text">
-               <string>Step Size [nm]</string>
+               <string>Step Size [μm]</string>
               </property>
              </widget>
             </item>
             <item row="0" column="1">
-             <widget class="QSpinBox" name="step_size_1">
+             <widget class="QDoubleSpinBox" name="step_size_1">
               <property name="enabled">
                <bool>false</bool>
               </property>
@@ -185,11 +185,8 @@
               <property name="buttonSymbols">
                <enum>QAbstractSpinBox::ButtonSymbols::NoButtons</enum>
               </property>
-              <property name="minimum">
-               <number>1</number>
-              </property>
               <property name="maximum">
-               <number>1000000000</number>
+               <double>10000.000000000000000</double>
               </property>
              </widget>
             </item>
@@ -276,12 +273,12 @@
             <item row="0" column="0">
              <widget class="QLabel" name="step_size_0_label">
               <property name="text">
-               <string>Step Size [nm]</string>
+               <string>Step Size [μm]</string>
               </property>
              </widget>
             </item>
             <item row="0" column="1">
-             <widget class="QSpinBox" name="step_size_0">
+             <widget class="QDoubleSpinBox" name="step_size_0">
               <property name="enabled">
                <bool>false</bool>
               </property>
@@ -291,11 +288,8 @@
               <property name="buttonSymbols">
                <enum>QAbstractSpinBox::ButtonSymbols::NoButtons</enum>
               </property>
-              <property name="minimum">
-               <number>1</number>
-              </property>
               <property name="maximum">
-               <number>1000000000</number>
+               <double>10000.000000000000000</double>
               </property>
              </widget>
             </item>
@@ -323,12 +317,26 @@
             <item row="1" column="0">
              <widget class="QLabel" name="position_1_label">
               <property name="text">
-               <string>Position [nm]</string>
+               <string>Position [μm]</string>
+              </property>
+             </widget>
+            </item>
+            <item row="2" column="0">
+             <widget class="QLabel" name="velocity_1_label">
+              <property name="text">
+               <string>Velocity [μm/s]</string>
+              </property>
+             </widget>
+            </item>
+            <item row="3" column="0">
+             <widget class="QLabel" name="acceleration_1_label">
+              <property name="text">
+               <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Acceleration [μm/s&lt;span style=&quot; vertical-align:super;&quot;&gt;2&lt;/span&gt;]&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
               </property>
              </widget>
             </item>
             <item row="1" column="1">
-             <widget class="QSpinBox" name="position_1">
+             <widget class="QDoubleSpinBox" name="position_1">
               <property name="enabled">
                <bool>false</bool>
               </property>
@@ -339,22 +347,15 @@
                <enum>QAbstractSpinBox::ButtonSymbols::NoButtons</enum>
               </property>
               <property name="minimum">
-               <number>-1000000000</number>
+               <double>-50000.000000000000000</double>
               </property>
               <property name="maximum">
-               <number>1000000000</number>
-              </property>
-             </widget>
-            </item>
-            <item row="2" column="0">
-             <widget class="QLabel" name="velocity_1_label">
-              <property name="text">
-               <string>Velocity [nm/s]</string>
+               <double>50000.000000000000000</double>
               </property>
              </widget>
             </item>
             <item row="2" column="1">
-             <widget class="QSpinBox" name="velocity_1">
+             <widget class="QDoubleSpinBox" name="velocity_1">
               <property name="enabled">
                <bool>false</bool>
               </property>
@@ -368,19 +369,12 @@
                <bool>false</bool>
               </property>
               <property name="maximum">
-               <number>1000000000</number>
-              </property>
-             </widget>
-            </item>
-            <item row="3" column="0">
-             <widget class="QLabel" name="acceleration_1_label">
-              <property name="text">
-               <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Acceleration [nm/s&lt;span style=&quot; vertical-align:super;&quot;&gt;2&lt;/span&gt;]&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+               <double>10000.000000000000000</double>
               </property>
              </widget>
             </item>
             <item row="3" column="1">
-             <widget class="QSpinBox" name="acceleration_1">
+             <widget class="QDoubleSpinBox" name="acceleration_1">
               <property name="enabled">
                <bool>false</bool>
               </property>
@@ -394,7 +388,7 @@
                <bool>false</bool>
               </property>
               <property name="maximum">
-               <number>1000000000</number>
+               <double>15000.000000000000000</double>
               </property>
              </widget>
             </item>
@@ -422,38 +416,26 @@
             <item row="1" column="0">
              <widget class="QLabel" name="position_2_label">
               <property name="text">
-               <string>Position [nm]</string>
-              </property>
-             </widget>
-            </item>
-            <item row="1" column="1">
-             <widget class="QSpinBox" name="position_2">
-              <property name="enabled">
-               <bool>false</bool>
-              </property>
-              <property name="alignment">
-               <set>Qt::AlignmentFlag::AlignRight|Qt::AlignmentFlag::AlignTrailing|Qt::AlignmentFlag::AlignVCenter</set>
-              </property>
-              <property name="buttonSymbols">
-               <enum>QAbstractSpinBox::ButtonSymbols::NoButtons</enum>
-              </property>
-              <property name="minimum">
-               <number>-1000000000</number>
-              </property>
-              <property name="maximum">
-               <number>1000000000</number>
+               <string>Position [μm]</string>
               </property>
              </widget>
             </item>
             <item row="2" column="0">
              <widget class="QLabel" name="velocity_2_label">
               <property name="text">
-               <string>Velocity [nm/s]</string>
+               <string>Velocity [μm/s]</string>
               </property>
              </widget>
             </item>
-            <item row="2" column="1">
-             <widget class="QSpinBox" name="velocity_2">
+            <item row="3" column="0">
+             <widget class="QLabel" name="acceleration_2_label">
+              <property name="text">
+               <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Acceleration [μm/s&lt;span style=&quot; vertical-align:super;&quot;&gt;2&lt;/span&gt;]&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+              </property>
+             </widget>
+            </item>
+            <item row="1" column="1">
+             <widget class="QDoubleSpinBox" name="position_2">
               <property name="enabled">
                <bool>false</bool>
               </property>
@@ -464,22 +446,31 @@
                <enum>QAbstractSpinBox::ButtonSymbols::NoButtons</enum>
               </property>
               <property name="minimum">
-               <number>0</number>
+               <double>-50000.000000000000000</double>
               </property>
               <property name="maximum">
-               <number>1000000000</number>
+               <double>50000.000000000000000</double>
               </property>
              </widget>
             </item>
-            <item row="3" column="0">
-             <widget class="QLabel" name="acceleration_2_label">
-              <property name="text">
-               <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Acceleration [nm/s&lt;span style=&quot; vertical-align:super;&quot;&gt;2&lt;/span&gt;]&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+            <item row="2" column="1">
+             <widget class="QDoubleSpinBox" name="velocity_2">
+              <property name="enabled">
+               <bool>false</bool>
+              </property>
+              <property name="alignment">
+               <set>Qt::AlignmentFlag::AlignRight|Qt::AlignmentFlag::AlignTrailing|Qt::AlignmentFlag::AlignVCenter</set>
+              </property>
+              <property name="buttonSymbols">
+               <enum>QAbstractSpinBox::ButtonSymbols::NoButtons</enum>
+              </property>
+              <property name="maximum">
+               <double>10000.000000000000000</double>
               </property>
              </widget>
             </item>
             <item row="3" column="1">
-             <widget class="QSpinBox" name="acceleration_2">
+             <widget class="QDoubleSpinBox" name="acceleration_2">
               <property name="enabled">
                <bool>false</bool>
               </property>
@@ -492,11 +483,8 @@
               <property name="buttonSymbols">
                <enum>QAbstractSpinBox::ButtonSymbols::NoButtons</enum>
               </property>
-              <property name="minimum">
-               <number>0</number>
-              </property>
               <property name="maximum">
-               <number>1000000000</number>
+               <double>15000.000000000000000</double>
               </property>
              </widget>
             </item>
@@ -527,12 +515,12 @@
             <item row="0" column="0">
              <widget class="QLabel" name="step_size_2_label">
               <property name="text">
-               <string>Step Size [nm]</string>
+               <string>Step Size [μm]</string>
               </property>
              </widget>
             </item>
             <item row="0" column="1">
-             <widget class="QSpinBox" name="step_size_2">
+             <widget class="QDoubleSpinBox" name="step_size_2">
               <property name="enabled">
                <bool>false</bool>
               </property>
@@ -542,11 +530,8 @@
               <property name="buttonSymbols">
                <enum>QAbstractSpinBox::ButtonSymbols::NoButtons</enum>
               </property>
-              <property name="minimum">
-               <number>1</number>
-              </property>
               <property name="maximum">
-               <number>1000000000</number>
+               <double>10000.000000000000000</double>
               </property>
              </widget>
             </item>
@@ -598,12 +583,26 @@
             <item row="1" column="0">
              <widget class="QLabel" name="position_0_label">
               <property name="text">
-               <string>Position [nm]</string>
+               <string>Position [μm]</string>
+              </property>
+             </widget>
+            </item>
+            <item row="2" column="0">
+             <widget class="QLabel" name="velocity_0_label">
+              <property name="text">
+               <string>Velocity [μm/s]</string>
+              </property>
+             </widget>
+            </item>
+            <item row="3" column="0">
+             <widget class="QLabel" name="acceleration_0_label">
+              <property name="text">
+               <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Acceleration [μm/s&lt;span style=&quot; vertical-align:super;&quot;&gt;2&lt;/span&gt;]&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
               </property>
              </widget>
             </item>
             <item row="1" column="1">
-             <widget class="QSpinBox" name="position_0">
+             <widget class="QDoubleSpinBox" name="position_0">
               <property name="enabled">
                <bool>false</bool>
               </property>
@@ -617,25 +616,15 @@
                <bool>false</bool>
               </property>
               <property name="minimum">
-               <number>-1000000000</number>
+               <double>-50000.000000000000000</double>
               </property>
               <property name="maximum">
-               <number>1000000000</number>
-              </property>
-              <property name="stepType">
-               <enum>QAbstractSpinBox::StepType::DefaultStepType</enum>
-              </property>
-             </widget>
-            </item>
-            <item row="2" column="0">
-             <widget class="QLabel" name="velocity_0_label">
-              <property name="text">
-               <string>Velocity [nm/s]</string>
+               <double>50000.000000000000000</double>
               </property>
              </widget>
             </item>
             <item row="2" column="1">
-             <widget class="QSpinBox" name="velocity_0">
+             <widget class="QDoubleSpinBox" name="velocity_0">
               <property name="enabled">
                <bool>false</bool>
               </property>
@@ -649,19 +638,12 @@
                <bool>false</bool>
               </property>
               <property name="maximum">
-               <number>1000000000</number>
-              </property>
-             </widget>
-            </item>
-            <item row="3" column="0">
-             <widget class="QLabel" name="acceleration_0_label">
-              <property name="text">
-               <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Acceleration [nm/s&lt;span style=&quot; vertical-align:super;&quot;&gt;2&lt;/span&gt;]&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+               <double>10000.000000000000000</double>
               </property>
              </widget>
             </item>
             <item row="3" column="1">
-             <widget class="QSpinBox" name="acceleration_0">
+             <widget class="QDoubleSpinBox" name="acceleration_0">
               <property name="enabled">
                <bool>false</bool>
               </property>
@@ -675,7 +657,7 @@
                <bool>false</bool>
               </property>
               <property name="maximum">
-               <number>1000000000</number>
+               <double>15000.000000000000000</double>
               </property>
              </widget>
             </item>
@@ -913,55 +895,6 @@
             </item>
             <item>
              <layout class="QGridLayout" name="gridLayout_10">
-              <item row="3" column="0">
-               <widget class="QLabel" name="center_z_label">
-                <property name="text">
-                 <string>Center Z [nm]</string>
-                </property>
-               </widget>
-              </item>
-              <item row="0" column="1">
-               <widget class="QComboBox" name="trajectory_select"/>
-              </item>
-              <item row="1" column="1">
-               <widget class="QSpinBox" name="trajectory_center_x">
-                <property name="alignment">
-                 <set>Qt::AlignmentFlag::AlignRight|Qt::AlignmentFlag::AlignTrailing|Qt::AlignmentFlag::AlignVCenter</set>
-                </property>
-                <property name="buttonSymbols">
-                 <enum>QAbstractSpinBox::ButtonSymbols::NoButtons</enum>
-                </property>
-                <property name="minimum">
-                 <number>-1000000000</number>
-                </property>
-                <property name="maximum">
-                 <number>1000000000</number>
-                </property>
-               </widget>
-              </item>
-              <item row="3" column="1">
-               <widget class="QSpinBox" name="trajectory_center_z">
-                <property name="alignment">
-                 <set>Qt::AlignmentFlag::AlignRight|Qt::AlignmentFlag::AlignTrailing|Qt::AlignmentFlag::AlignVCenter</set>
-                </property>
-                <property name="buttonSymbols">
-                 <enum>QAbstractSpinBox::ButtonSymbols::NoButtons</enum>
-                </property>
-                <property name="minimum">
-                 <number>-1000000000</number>
-                </property>
-                <property name="maximum">
-                 <number>1000000000</number>
-                </property>
-               </widget>
-              </item>
-              <item row="2" column="0">
-               <widget class="QLabel" name="center_y_label">
-                <property name="text">
-                 <string>Center Y [nm]</string>
-                </property>
-               </widget>
-              </item>
               <item row="0" column="0">
                <widget class="QLabel" name="trajectory_label">
                 <property name="text">
@@ -969,35 +902,8 @@
                 </property>
                </widget>
               </item>
-              <item row="6" column="1">
-               <widget class="QPushButton" name="trajectory_stop_button">
-                <property name="enabled">
-                 <bool>false</bool>
-                </property>
-                <property name="text">
-                 <string>Stop</string>
-                </property>
-               </widget>
-              </item>
-              <item row="6" column="0">
-               <widget class="QPushButton" name="start_trajectory_button">
-                <property name="enabled">
-                 <bool>false</bool>
-                </property>
-                <property name="text">
-                 <string>Start</string>
-                </property>
-               </widget>
-              </item>
-              <item row="1" column="0">
-               <widget class="QLabel" name="center_x_label">
-                <property name="text">
-                 <string>Center X [nm]</string>
-                </property>
-               </widget>
-              </item>
-              <item row="2" column="1">
-               <widget class="QSpinBox" name="trajectory_center_y">
+              <item row="1" column="1">
+               <widget class="QDoubleSpinBox" name="trajectory_center_x">
                 <property name="alignment">
                  <set>Qt::AlignmentFlag::AlignRight|Qt::AlignmentFlag::AlignTrailing|Qt::AlignmentFlag::AlignVCenter</set>
                 </property>
@@ -1005,10 +911,109 @@
                  <enum>QAbstractSpinBox::ButtonSymbols::NoButtons</enum>
                 </property>
                 <property name="minimum">
-                 <number>-1000000000</number>
+                 <double>-50000.000000000000000</double>
                 </property>
                 <property name="maximum">
-                 <number>1000000000</number>
+                 <double>50000.000000000000000</double>
+                </property>
+               </widget>
+              </item>
+              <item row="4" column="0">
+               <widget class="QLabel" name="radius_label">
+                <property name="text">
+                 <string>Radius [μm]</string>
+                </property>
+               </widget>
+              </item>
+              <item row="2" column="1">
+               <widget class="QDoubleSpinBox" name="trajectory_center_y">
+                <property name="alignment">
+                 <set>Qt::AlignmentFlag::AlignRight|Qt::AlignmentFlag::AlignTrailing|Qt::AlignmentFlag::AlignVCenter</set>
+                </property>
+                <property name="buttonSymbols">
+                 <enum>QAbstractSpinBox::ButtonSymbols::NoButtons</enum>
+                </property>
+                <property name="minimum">
+                 <double>-50000.000000000000000</double>
+                </property>
+                <property name="maximum">
+                 <double>50000.000000000000000</double>
+                </property>
+               </widget>
+              </item>
+              <item row="3" column="1">
+               <widget class="QDoubleSpinBox" name="trajectory_center_z">
+                <property name="alignment">
+                 <set>Qt::AlignmentFlag::AlignRight|Qt::AlignmentFlag::AlignTrailing|Qt::AlignmentFlag::AlignVCenter</set>
+                </property>
+                <property name="buttonSymbols">
+                 <enum>QAbstractSpinBox::ButtonSymbols::NoButtons</enum>
+                </property>
+                <property name="minimum">
+                 <double>-50000.000000000000000</double>
+                </property>
+                <property name="maximum">
+                 <double>50000.000000000000000</double>
+                </property>
+               </widget>
+              </item>
+              <item row="6" column="1">
+               <widget class="QPushButton" name="trajectory_stop_button">
+                <property name="enabled">
+                 <bool>true</bool>
+                </property>
+                <property name="text">
+                 <string>Stop</string>
+                </property>
+               </widget>
+              </item>
+              <item row="3" column="0">
+               <widget class="QLabel" name="center_z_label">
+                <property name="text">
+                 <string>Center Z [μm]</string>
+                </property>
+               </widget>
+              </item>
+              <item row="2" column="0">
+               <widget class="QLabel" name="center_y_label">
+                <property name="text">
+                 <string>Center Y [μm]</string>
+                </property>
+               </widget>
+              </item>
+              <item row="1" column="0">
+               <widget class="QLabel" name="center_x_label">
+                <property name="text">
+                 <string>Center X [μm]</string>
+                </property>
+               </widget>
+              </item>
+              <item row="6" column="0">
+               <widget class="QPushButton" name="start_trajectory_button">
+                <property name="enabled">
+                 <bool>true</bool>
+                </property>
+                <property name="text">
+                 <string>Start</string>
+                </property>
+               </widget>
+              </item>
+              <item row="0" column="1">
+               <widget class="QComboBox" name="trajectory_select"/>
+              </item>
+              <item row="4" column="1">
+               <widget class="QDoubleSpinBox" name="trajectory_radius">
+                <property name="alignment">
+                 <set>Qt::AlignmentFlag::AlignRight|Qt::AlignmentFlag::AlignTrailing|Qt::AlignmentFlag::AlignVCenter</set>
+                </property>
+                <property name="buttonSymbols">
+                 <enum>QAbstractSpinBox::ButtonSymbols::NoButtons</enum>
+                </property>
+                <property name="minimum">
+                 <double>-50000.000000000000000</double>
+                </property>
+                <property name="maximum">
+                 <double>50000.000000000000000</double>
                 </property>
                </widget>
               </item>
@@ -1016,29 +1021,6 @@
                <widget class="QPushButton" name="trajectory_generate_button">
                 <property name="text">
                  <string>Generate</string>
-                </property>
-               </widget>
-              </item>
-              <item row="4" column="0">
-               <widget class="QLabel" name="radius_label">
-                <property name="text">
-                 <string>Radius [nm]</string>
-                </property>
-               </widget>
-              </item>
-              <item row="4" column="1">
-               <widget class="QSpinBox" name="trajectory_radius">
-                <property name="alignment">
-                 <set>Qt::AlignmentFlag::AlignRight|Qt::AlignmentFlag::AlignTrailing|Qt::AlignmentFlag::AlignVCenter</set>
-                </property>
-                <property name="buttonSymbols">
-                 <enum>QAbstractSpinBox::ButtonSymbols::NoButtons</enum>
-                </property>
-                <property name="minimum">
-                 <number>0</number>
-                </property>
-                <property name="maximum">
-                 <number>1000000000</number>
                 </property>
                </widget>
               </item>

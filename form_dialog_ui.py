@@ -1,9 +1,9 @@
 # -*- coding: utf-8 -*-
 
 ################################################################################
-## Form generated from reading UI file 'form_dialog.ui'
+## Form generated from reading UI file 'form_dialogStubXo.ui'
 ##
-## Created by: Qt User Interface Compiler version 6.7.3
+## Created by: Qt User Interface Compiler version 6.6.2
 ##
 ## WARNING! All changes made in this file will be lost when recompiling UI file!
 ################################################################################
@@ -16,15 +16,15 @@ from PySide6.QtGui import (QBrush, QColor, QConicalGradient, QCursor,
     QImage, QKeySequence, QLinearGradient, QPainter,
     QPalette, QPixmap, QRadialGradient, QTransform)
 from PySide6.QtWidgets import (QAbstractSpinBox, QApplication, QComboBox, QDialog,
-    QFormLayout, QGridLayout, QHBoxLayout, QLabel,
-    QLayout, QPushButton, QSizePolicy, QSpacerItem,
-    QSpinBox, QWidget)
+    QDoubleSpinBox, QFormLayout, QGridLayout, QHBoxLayout,
+    QLabel, QLayout, QPushButton, QSizePolicy,
+    QSpacerItem, QWidget)
 
 class Ui_Dialog(object):
     def setupUi(self, Dialog):
         if not Dialog.objectName():
             Dialog.setObjectName(u"Dialog")
-        Dialog.setWindowModality(Qt.NonModal)
+        Dialog.setWindowModality(Qt.WindowModality.NonModal)
         Dialog.resize(614, 191)
         sizePolicy = QSizePolicy(QSizePolicy.Policy.Minimum, QSizePolicy.Policy.Minimum)
         sizePolicy.setHorizontalStretch(0)
@@ -36,7 +36,7 @@ class Ui_Dialog(object):
         Dialog.setSizeGripEnabled(False)
         self.gridLayout_3 = QGridLayout(Dialog)
         self.gridLayout_3.setObjectName(u"gridLayout_3")
-        self.gridLayout_3.setSizeConstraint(QLayout.SetMinimumSize)
+        self.gridLayout_3.setSizeConstraint(QLayout.SizeConstraint.SetMinimumSize)
         self.horizontalSpacer = QSpacerItem(40, 20, QSizePolicy.Policy.MinimumExpanding, QSizePolicy.Policy.Minimum)
 
         self.gridLayout_3.addItem(self.horizontalSpacer, 1, 2, 1, 1)
@@ -49,7 +49,7 @@ class Ui_Dialog(object):
         self.gridLayout_5.setObjectName(u"gridLayout_5")
         self.path_selection = QComboBox(Dialog)
         self.path_selection.setObjectName(u"path_selection")
-        self.path_selection.setLayoutDirection(Qt.LeftToRight)
+        self.path_selection.setLayoutDirection(Qt.LayoutDirection.LeftToRight)
 
         self.gridLayout_5.addWidget(self.path_selection, 0, 1, 1, 1)
 
@@ -67,25 +67,25 @@ class Ui_Dialog(object):
         self.gridLayout_2.setObjectName(u"gridLayout_2")
         self.channel_0_label = QLabel(Dialog)
         self.channel_0_label.setObjectName(u"channel_0_label")
-        self.channel_0_label.setAlignment(Qt.AlignCenter)
+        self.channel_0_label.setAlignment(Qt.AlignmentFlag.AlignCenter)
 
         self.gridLayout_2.addWidget(self.channel_0_label, 0, 0, 1, 1)
 
         self.formLayout = QFormLayout()
         self.formLayout.setObjectName(u"formLayout")
-        self.formLayout.setFormAlignment(Qt.AlignCenter)
+        self.formLayout.setFormAlignment(Qt.AlignmentFlag.AlignCenter)
         self.position_0_label = QLabel(Dialog)
         self.position_0_label.setObjectName(u"position_0_label")
 
         self.formLayout.setWidget(0, QFormLayout.LabelRole, self.position_0_label)
 
-        self.position_0 = QSpinBox(Dialog)
+        self.position_0 = QDoubleSpinBox(Dialog)
         self.position_0.setObjectName(u"position_0")
-        self.position_0.setAlignment(Qt.AlignRight|Qt.AlignTrailing|Qt.AlignVCenter)
-        self.position_0.setButtonSymbols(QAbstractSpinBox.NoButtons)
+        self.position_0.setAlignment(Qt.AlignmentFlag.AlignRight|Qt.AlignmentFlag.AlignTrailing|Qt.AlignmentFlag.AlignVCenter)
+        self.position_0.setButtonSymbols(QAbstractSpinBox.ButtonSymbols.NoButtons)
         self.position_0.setKeyboardTracking(False)
-        self.position_0.setMinimum(-1000000000)
-        self.position_0.setMaximum(1000000000)
+        self.position_0.setMinimum(-50000.000000000000000)
+        self.position_0.setMaximum(50000.000000000000000)
 
         self.formLayout.setWidget(0, QFormLayout.FieldRole, self.position_0)
 
@@ -99,19 +99,19 @@ class Ui_Dialog(object):
         self.gridLayout.setObjectName(u"gridLayout")
         self.formLayout_2 = QFormLayout()
         self.formLayout_2.setObjectName(u"formLayout_2")
-        self.formLayout_2.setFormAlignment(Qt.AlignCenter)
+        self.formLayout_2.setFormAlignment(Qt.AlignmentFlag.AlignCenter)
         self.position_1_label = QLabel(Dialog)
         self.position_1_label.setObjectName(u"position_1_label")
 
         self.formLayout_2.setWidget(0, QFormLayout.LabelRole, self.position_1_label)
 
-        self.position_1 = QSpinBox(Dialog)
+        self.position_1 = QDoubleSpinBox(Dialog)
         self.position_1.setObjectName(u"position_1")
-        self.position_1.setAlignment(Qt.AlignRight|Qt.AlignTrailing|Qt.AlignVCenter)
-        self.position_1.setButtonSymbols(QAbstractSpinBox.NoButtons)
+        self.position_1.setAlignment(Qt.AlignmentFlag.AlignRight|Qt.AlignmentFlag.AlignTrailing|Qt.AlignmentFlag.AlignVCenter)
+        self.position_1.setButtonSymbols(QAbstractSpinBox.ButtonSymbols.NoButtons)
         self.position_1.setKeyboardTracking(False)
-        self.position_1.setMinimum(-1000000000)
-        self.position_1.setMaximum(1000000000)
+        self.position_1.setMinimum(-50000.000000000000000)
+        self.position_1.setMaximum(50000.000000000000000)
 
         self.formLayout_2.setWidget(0, QFormLayout.FieldRole, self.position_1)
 
@@ -120,7 +120,7 @@ class Ui_Dialog(object):
 
         self.channel_1_label = QLabel(Dialog)
         self.channel_1_label.setObjectName(u"channel_1_label")
-        self.channel_1_label.setAlignment(Qt.AlignCenter)
+        self.channel_1_label.setAlignment(Qt.AlignmentFlag.AlignCenter)
 
         self.gridLayout.addWidget(self.channel_1_label, 0, 0, 1, 1)
 
@@ -131,24 +131,24 @@ class Ui_Dialog(object):
         self.gridLayout_4.setObjectName(u"gridLayout_4")
         self.channel_2_label = QLabel(Dialog)
         self.channel_2_label.setObjectName(u"channel_2_label")
-        self.channel_2_label.setAlignment(Qt.AlignCenter)
+        self.channel_2_label.setAlignment(Qt.AlignmentFlag.AlignCenter)
 
         self.gridLayout_4.addWidget(self.channel_2_label, 0, 0, 1, 1)
 
         self.formLayout_3 = QFormLayout()
         self.formLayout_3.setObjectName(u"formLayout_3")
-        self.formLayout_3.setFormAlignment(Qt.AlignCenter)
+        self.formLayout_3.setFormAlignment(Qt.AlignmentFlag.AlignCenter)
         self.position_2_label = QLabel(Dialog)
         self.position_2_label.setObjectName(u"position_2_label")
 
         self.formLayout_3.setWidget(0, QFormLayout.LabelRole, self.position_2_label)
 
-        self.position_2 = QSpinBox(Dialog)
+        self.position_2 = QDoubleSpinBox(Dialog)
         self.position_2.setObjectName(u"position_2")
-        self.position_2.setAlignment(Qt.AlignRight|Qt.AlignTrailing|Qt.AlignVCenter)
-        self.position_2.setButtonSymbols(QAbstractSpinBox.NoButtons)
-        self.position_2.setMinimum(-1000000000)
-        self.position_2.setMaximum(1000000000)
+        self.position_2.setAlignment(Qt.AlignmentFlag.AlignRight|Qt.AlignmentFlag.AlignTrailing|Qt.AlignmentFlag.AlignVCenter)
+        self.position_2.setButtonSymbols(QAbstractSpinBox.ButtonSymbols.NoButtons)
+        self.position_2.setMinimum(-50000.000000000000000)
+        self.position_2.setMaximum(50000.000000000000000)
 
         self.formLayout_3.setWidget(0, QFormLayout.FieldRole, self.position_2)
 
@@ -171,7 +171,7 @@ class Ui_Dialog(object):
 
         self.horizontalLayout = QHBoxLayout()
         self.horizontalLayout.setObjectName(u"horizontalLayout")
-        self.horizontalLayout.setSizeConstraint(QLayout.SetDefaultConstraint)
+        self.horizontalLayout.setSizeConstraint(QLayout.SizeConstraint.SetDefaultConstraint)
         self.move_button = QPushButton(Dialog)
         self.move_button.setObjectName(u"move_button")
 

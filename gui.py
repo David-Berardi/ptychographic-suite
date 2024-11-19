@@ -3,10 +3,9 @@ import os
 import sys
 from functools import partial
 
-import numpy as np
 from matplotlib.backends.backend_qtagg import FigureCanvasQTAgg as FigureCanvas
 from matplotlib.figure import Figure
-from PySide6.QtCore import Signal, Slot
+from PySide6.QtCore import Slot
 from PySide6.QtGui import QImage, QPixmap
 from PySide6.QtWidgets import QApplication, QDialog, QFileDialog, QMainWindow
 
@@ -16,6 +15,13 @@ from form_dialog_ui import Ui_Dialog
 from main_window_ui import Ui_MainWindow
 from ptychography import Ptychography
 
+CHANNEL_X = 1
+CHANNEL_Y = 2
+CHANNEL_Z = 0
+
+
+# TODO: controller not both at once
+
 
 class MoveForm(QDialog, Ui_Dialog):
     def __init__(self):
@@ -23,7 +29,15 @@ class MoveForm(QDialog, Ui_Dialog):
         self.setupUi(self)
 
 
-# TODO: add commands for incremental steps of the linear stages
+# TODO: fix controller refresh -> it doesn't create a new instance after no device detected!!!
+
+# TODO: fix velocity, acceleration update via gui -> value input generates out of memory error due to integer too big
+
+# TODO: fix d_handle assignment to ptychography module -> at creation of controller it doesn't assign handle to ptychography module
+# -> wait for complete initialization of controller before assigning OR assign at another point (maybe @ GENERATE coordinates)
+# (and check whether handle is None before generating coordinates)
+
+
 class MainWindow(QMainWindow, Ui_MainWindow):
     def __init__(self):
         super().__init__()
@@ -38,23 +52,20 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         self.mpl = FigureCanvas(Figure(figsize=(4, 2), tight_layout=True))
         self.acquisition_layout.addWidget(self.mpl)
         self.axes = self.mpl.figure.subplots()
-        self.axes.set_xlabel("X plane [nm]")
-        self.axes.set_ylabel("Y plane [nm]")
+        self.axes.set_xlabel(rf"X plane [$\mu$m]")
+        self.axes.set_ylabel(rf"Y plane [$\mu$m]")
         self.axes.set_title("Fermat Spiral Trajectory")
         self.axes.grid()
 
         self.trajectory_generate_button.clicked.connect(self.generate_graph)
 
-        # ptychography start
-        self.start_trajectory_button.setEnabled(True)
+        # ptychography start and stop
         self.start_trajectory_button.clicked.connect(self.start_acquisition)
+        self.trajectory_stop_button.clicked.connect(self.ptychography.abort)
 
         # controller
         self.refresh_button.clicked.connect(self.refresh_controller)
         self.move_button.clicked.connect(self.create_form)
-
-        # TODO: for testing, move to show_locator
-        self.move_button.setEnabled(True)
 
         # camera
         self.refresh_camera_button.clicked.connect(self.refresh_camera)
@@ -75,8 +86,8 @@ class MainWindow(QMainWindow, Ui_MainWindow):
     def generate_graph(self):
         # clear axis at each generation
         self.axes.cla()
-        self.axes.set_xlabel("X plane [nm]")
-        self.axes.set_ylabel("Y plane [nm]")
+        self.axes.set_xlabel(rf"X plane [$\mu$m]")
+        self.axes.set_ylabel(rf"Y plane [$\mu$m]")
         self.axes.set_title("Fermat Spiral Trajectory")
         self.axes.grid()
 
@@ -89,7 +100,8 @@ class MainWindow(QMainWindow, Ui_MainWindow):
 
         # plot coordinates and current point
         self.axes.scatter(
-            self.ptychography.coordinates[:, 0], self.ptychography.coordinates[:, 1]
+            self.ptychography.coordinates[:, 0],
+            self.ptychography.coordinates[:, 1],
         )
         self.current_coordinate_plot = self.axes.scatter(
             self.ptychography.coordinates[0, 0],
@@ -100,6 +112,20 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         self.current_coordinate_plot.set_offsets(self.ptychography.coordinates[0])
         self.mpl.draw()
 
+    def create_form(self):
+        self.move_form = MoveForm()
+
+        self.move_form.move_button.clicked.connect(self.move)
+        self.move_form.abort_button.clicked.connect(self.device.abort)
+
+        # current position
+        self.move_form.position_0.setValue(self.position_0.value())
+        self.move_form.position_1.setValue(self.position_1.value())
+        self.move_form.position_2.setValue(self.position_2.value())
+
+        if self.move_form.exec():
+            print("Movement Form")
+
     @Slot(list)
     def update_point(self, current_coordinate):
         # TODO: for each step update point color and add circle with laser spot diameter, save and display averaged frame
@@ -107,6 +133,8 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         self.mpl.draw()
 
     def refresh_controller(self):
+        self.error_label.setText("")
+
         if self.devices.count() == 0:
             self.device = MCS2_Controller()
 
@@ -115,45 +143,24 @@ class MainWindow(QMainWindow, Ui_MainWindow):
             self.device.signals.update_data.connect(self.get_position)
             self.device.signals.default.connect(self.default)
 
-            # set ptychography module d_handel to device's d_handle
-            self.ptychography.d_handle = self.device.d_handle
-
-            # TODO: TEMPORARY
-            self.plus_0_button.setEnabled(True)
-            self.plus_1_button.setEnabled(True)
-            self.plus_2_button.setEnabled(True)
-            self.step_size_0.setEnabled(True)
-            self.plus_0_button.clicked.connect(partial(self.increase, 0))
-            self.plus_1_button.clicked.connect(partial(self.increase, 1))
-            self.plus_2_button.clicked.connect(partial(self.increase, 2))
-            self.velocity_0.setEnabled(True)
-            self.velocity_1.setEnabled(True)
-            self.velocity_2.setEnabled(True)
-            self.velocity_0.editingFinished.connect(partial(self.update_velocity, 0))
-            self.velocity_1.editingFinished.connect(partial(self.update_velocity, 1))
-            self.velocity_2.editingFinished.connect(partial(self.update_velocity, 2))
-
+            # call to connection to controller
             self.device.initialize_controller()
 
-    def increase(self, channel):
-        if channel == 0:
-            self.device.increase(channel, self.step_size_0.value())
-        if channel == 1:
-            self.device.increase(channel, self.step_size_1.value())
-        if channel == 2:
-            self.device.increase(channel, self.step_size_2.value())
+            # TODO: possibly create while loop to ensure assignment and ADD sleep 100 ms to avoid cpu saturation
+            """ while True:
+                if self.device.d_handle is not None:
+                    self.ptychography.d_handle = self.device.d_handle
+                    break """
 
-    def decrease(self, channel):
-        if channel == 0:
-            self.device.decrease(channel, self.step_size_0.value())
-        if channel == 1:
-            self.device.decrease(channel, self.step_size_1.value())
-        if channel == 2:
-            self.device.decrease(channel, self.step_size_2.value())
+            self.ptychography.d_handle = self.device.d_handle
 
     def refresh_camera(self):
+        if hasattr(self, "camera"):
+            self.camera.quit()
+            self.camera.wait()
+
         if self.cameras.count() == 0:
-            self.camera = ScientificCamera()
+            self.camera = ScientificCamera(self.frames.value(), self.exposure.value())
             self.camera.start()
 
             self.directory_label.setText(str(os.getcwd()))
@@ -167,6 +174,22 @@ class MainWindow(QMainWindow, Ui_MainWindow):
 
             # set ptychography module camera to scientific camera
             self.ptychography.camera = self.camera
+
+    def increase(self, channel):
+        if channel == CHANNEL_X:
+            self.device.increase(channel, self.step_size_0.value())
+        if channel == CHANNEL_Y:
+            self.device.increase(channel, self.step_size_1.value())
+        if channel == CHANNEL_Z:
+            self.device.increase(channel, self.step_size_2.value())
+
+    def decrease(self, channel):
+        if channel == CHANNEL_X:
+            self.device.decrease(channel, self.step_size_0.value())
+        if channel == CHANNEL_Y:
+            self.device.decrease(channel, self.step_size_1.value())
+        if channel == CHANNEL_Z:
+            self.device.decrease(channel, self.step_size_2.value())
 
     @Slot(str)
     def show_model(self, model):
@@ -204,6 +227,9 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         self.camera.capture(directory, frames)
 
     def stop_camera(self):
+        # Stop camera thread
+        self.camera.stop = True
+
         self.live_feed.setText("Live Feed")
         self.cameras.removeItem(0)
 
@@ -214,9 +240,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         self.stop_button.clicked.disconnect()
         self.exposure.valueChanged.disconnect()
 
-        # Stop camera thread
-        self.camera.stop = True
-        self.camera.quit()
+        self.camera.terminate()
 
     @Slot(str)
     def show_locator(self, locator_id):
@@ -226,10 +250,13 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         # re-enable buttons and make fields visible
         self.position_0.setEnabled(True)
         self.position_1.setEnabled(True)
+        self.position_2.setEnabled(True)
         self.velocity_0.setEnabled(True)
         self.velocity_1.setEnabled(True)
+        self.velocity_2.setEnabled(True)
         self.acceleration_0.setEnabled(True)
         self.acceleration_1.setEnabled(True)
+        self.acceleration_2.setEnabled(True)
         self.move_mode_select.setEnabled(True)
         self.move_mode_label.setEnabled(True)
         self.reference_button.setEnabled(True)
@@ -252,96 +279,91 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         self.move_mode_select.currentIndexChanged.connect(self.device.set_movement_mode)
 
         # update position value for each channel
-        self.position_0.editingFinished.connect(partial(self.update_position, 0))
-        self.position_0.editingFinished.connect(partial(self.update_position, 1))
-        self.position_0.editingFinished.connect(partial(self.update_position, 2))
+        self.position_0.editingFinished.connect(
+            partial(self.update_position, CHANNEL_X)
+        )
+        self.position_0.editingFinished.connect(
+            partial(self.update_position, CHANNEL_Y)
+        )
+        self.position_0.editingFinished.connect(
+            partial(self.update_position, CHANNEL_Z)
+        )
 
         # update velocity for each channel
-        self.velocity_0.editingFinished.connect(partial(self.update_velocity, 0))
-        self.velocity_1.editingFinished.connect(partial(self.update_velocity, 1))
-        self.velocity_2.editingFinished.connect(partial(self.update_velocity, 2))
+        self.velocity_0.editingFinished.connect(
+            partial(self.update_velocity, CHANNEL_X)
+        )
+        self.velocity_1.editingFinished.connect(
+            partial(self.update_velocity, CHANNEL_Y)
+        )
+        self.velocity_2.editingFinished.connect(
+            partial(self.update_velocity, CHANNEL_Z)
+        )
 
         # update acceleration for each channel
         self.acceleration_0.editingFinished.connect(
-            partial(self.update_acceleration, 0)
+            partial(self.update_acceleration, CHANNEL_X)
         )
         self.acceleration_1.editingFinished.connect(
-            partial(self.update_acceleration, 1)
+            partial(self.update_acceleration, CHANNEL_Y)
         )
         self.acceleration_2.editingFinished.connect(
-            partial(self.update_acceleration, 2)
+            partial(self.update_acceleration, CHANNEL_Z)
         )
 
         # add incremental steps for each channel
-        self.plus_0_button.clicked.connect(partial(self.increase, 0))
-        self.plus_1_button.clicked.connect(partial(self.increase, 1))
-        self.plus_2_button.clicked.connect(partial(self.increase, 2))
+        self.plus_0_button.clicked.connect(partial(self.increase, CHANNEL_X))
+        self.plus_1_button.clicked.connect(partial(self.increase, CHANNEL_Y))
+        self.plus_2_button.clicked.connect(partial(self.increase, CHANNEL_Z))
 
-        self.minus_0_button.clicked.connect(partial(self.decrease, 0))
-        self.minus_1_button.clicked.connect(partial(self.decrease, 1))
-        self.minus_2_button.clicked.connect(partial(self.decrease, 2))
+        self.minus_0_button.clicked.connect(partial(self.decrease, CHANNEL_X))
+        self.minus_1_button.clicked.connect(partial(self.decrease, CHANNEL_Y))
+        self.minus_2_button.clicked.connect(partial(self.decrease, CHANNEL_Z))
 
         # add functionality to reference and calibrate buttons
         self.reference_button.clicked.connect(self.device.reference)
         self.calibrate_button.clicked.connect(self.device.calibrate)
 
     def update_position(self, channel):
-        if channel == 0:
+        if channel == CHANNEL_X:
             print(f"{channel}, {self.position_0.value()}")
             self.device.set_position(channel, self.position_0.value())
-        if channel == 1:
+        if channel == CHANNEL_Y:
             print(f"{channel}, {self.position_1.value()}")
             self.device.set_position(channel, self.position_1.value())
-        if channel == 2:
+        if channel == CHANNEL_Z:
             print(f"{channel}, {self.position_2.value()}")
             self.device.set_position(channel, self.position_2.value())
 
     def update_velocity(self, channel):
-        if channel == 0:
+        if channel == CHANNEL_X:
             print(f"{channel}, {self.velocity_0.value()}")
-            self.device.set_velocity(channel, self.velocity_0.value())
-        if channel == 1:
+            self.device.set_velocity(channel, int(self.velocity_0.value()))
+        if channel == CHANNEL_Y:
             print(f"{channel}, {self.velocity_1.value()}")
             self.device.set_velocity(channel, self.velocity_1.value())
-        if channel == 2:
+        if channel == CHANNEL_Z:
             print(f"{channel}, {self.velocity_2.value()}")
             self.device.set_velocity(channel, self.velocity_2.value())
 
     def update_acceleration(self, channel):
-        if channel == 0:
+        if channel == CHANNEL_X:
             print(f"{channel}, {self.acceleration_0.value()}")
             self.device.set_acceleration(channel, self.acceleration_0.value())
-        if channel == 1:
+        if channel == CHANNEL_Y:
             print(f"{channel}, {self.acceleration_1.value()}")
             self.device.set_acceleration(channel, self.acceleration_1.value())
-        if channel == 2:
+        if channel == CHANNEL_Z:
             print(f"{channel}, {self.acceleration_2.value()}")
             self.device.set_acceleration(channel, self.acceleration_2.value())
 
-    def create_form(self):
-        self.move_form = MoveForm()
-
-        self.move_form.move_button.clicked.connect(self.move)
-        self.move_form.abort_button.clicked.connect(self.device.abort)
-
-        # current position
-        self.move_form.position_0.setValue(self.position_0.value())
-        self.move_form.position_1.setValue(self.position_1.value())
-        self.move_form.position_2.setValue(self.position_2.value())
-
-        if self.move_form.exec():
-            print("Movement Form")
-
-    # TODO: add z position centering for algorithm
-
     def move(self):
         # add movement functionality
-        # convert to pm by multiplying by 1000
         print(self.move_form.position_0.value())
         positions = [
-            self.move_form.position_0.value() * 1000,
-            self.move_form.position_1.value() * 1000,
-            self.move_form.position_2.value() * 1000,
+            self.move_form.position_0.value(),
+            self.move_form.position_1.value(),
+            self.move_form.position_2.value(),
         ]
         self.device.move(positions)
 

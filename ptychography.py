@@ -3,6 +3,10 @@ import smaract.ctl as ctl  # type: ignore
 from PySide6.QtCore import QThread, Signal, Slot
 from scipy.spatial.distance import cdist  # type: ignore
 
+CHANNEL_X = 1
+CHANNEL_Y = 2
+CHANNEL_Z = 0
+
 
 # TODO: create path generator class, for paths creation to feed to the controller
 class Ptychography(QThread):
@@ -61,6 +65,7 @@ class Ptychography(QThread):
             y -= np.min(y)
 
         coordinates: np.ndarray = np.column_stack((x, y))
+
         return coordinates
 
     def order_by_distance(
@@ -131,7 +136,6 @@ class Ptychography(QThread):
     # after requesting image save, in a while loop qthread sleep for 0.1 secs or less until signal written is true
     # then set done to true, remember to release the holding position of the stages
     # use ctl.WaitForEvent, check for event.type == ctl.EventType.MOVEMENT_FINISHED
-    # start image acquisition in the if statement
 
     def waitForEvent(self):
         timeout = 100000  # in ms
@@ -166,6 +170,7 @@ class Ptychography(QThread):
     def run(self):
         try:
             # check if d_handle and camera exist
+            # TODO: make sure d_handle is assigned once connected
             if self.d_handle is not None and self.camera is not None:
                 self.camera.written_signal.connect(self.is_written)
 
@@ -181,43 +186,57 @@ class Ptychography(QThread):
         except Exception as error:
             print(error)
 
+    @Slot()
+    def abort(self):
+        # stop motion and terminate thread
+        t_handle = ctl.OpenCommandGroup(self.d_handle, ctl.CmdGroupTriggerMode.DIRECT)
+
+        ctl.Stop(self.d_handle, CHANNEL_X, tHandle=t_handle)
+        ctl.Stop(self.d_handle, CHANNEL_Y, tHandle=t_handle)
+        ctl.Stop(self.d_handle, CHANNEL_Z, tHandle=t_handle)
+
+        # close command group
+        ctl.CloseCommandGroup(self.d_handle, t_handle)
+
+        self.terminate()
+
     def acquisition(self):
         r_id = [0] * 4
         self.written = False
 
         if self.coordinates is not None:
-            """# enable amplifier for each channel
+            # enable amplifier for each channel
             t_handle = ctl.OpenCommandGroup(
                 self.d_handle, ctl.CmdGroupTriggerMode.DIRECT
             )
 
             r_id[0] = ctl.RequestWriteProperty_i32(
                 self.d_handle,
-                0,
+                CHANNEL_X,
                 ctl.Property.AMPLIFIER_ENABLED,
                 ctl.TRUE,
                 tHandle=t_handle,
             )
             r_id[1] = ctl.RequestWriteProperty_i32(
                 self.d_handle,
-                1,
+                CHANNEL_Y,
                 ctl.Property.AMPLIFIER_ENABLED,
                 ctl.TRUE,
                 tHandle=t_handle,
             )
             r_id[2] = ctl.RequestWriteProperty_i32(
                 self.d_handle,
-                2,
+                CHANNEL_Z,
                 ctl.Property.AMPLIFIER_ENABLED,
                 ctl.TRUE,
                 tHandle=t_handle,
             )
 
             # move z-stage to z-coordinate and hold position indefinitely (use ctl.Stop do release)
-            ctl.Move(self.d_handle, 2, self.center_z, tHandle=t_handle)
+            ctl.Move(self.d_handle, 2, int(self.center_z * 1e6), tHandle=t_handle)
             r_id[3] = ctl.RequestWriteProperty_i32(
                 self.d_handle,
-                2,
+                CHANNEL_Z,
                 ctl.Property.HOLD_TIME,
                 ctl.HOLD_TIME_INFINITE,
                 tHandle=t_handle,
@@ -232,35 +251,35 @@ class Ptychography(QThread):
 
             # wait for MOVEMENT_FINISHED
             self.waitForEvent()
-            """
 
             # move to coordinate, capture image, emit current coordinate
-            # TODO: set initial position as zero
             for coordinate in self.coordinates:
-                # print(coordinate)
                 self.current_coordinate_signal.emit(coordinate)
 
-                # NOTE: might need to check for CMD_GROUP_TRIGGERED event
                 # move to coordinate and hold position (commandgroup)
-                """ t_handle = ctl.OpenCommandGroup(
+                t_handle = ctl.OpenCommandGroup(
                     self.d_handle, ctl.CmdGroupTriggerMode.DIRECT
                 )
 
                 # move to coordinate
-                ctl.Move(self.d_handle, 0, coordinate[0], tHandle=t_handle)
-                ctl.Move(self.d_handle, 1, coordinate[1], tHandle=t_handle)
+                ctl.Move(
+                    self.d_handle, CHANNEL_X, int(coordinate[0] * 1e6), tHandle=t_handle
+                )
+                ctl.Move(
+                    self.d_handle, CHANNEL_Y, int(coordinate[1] * 1e6), tHandle=t_handle
+                )
 
                 # hold position
                 r_id[0] = ctl.RequestWriteProperty_i32(
                     self.d_handle,
-                    0,
+                    CHANNEL_X,
                     ctl.Property.HOLD_TIME,
                     ctl.HOLD_TIME_INFINITE,
                     tHandle=t_handle,
                 )
                 r_id[1] = ctl.RequestWriteProperty_i32(
                     self.d_handle,
-                    1,
+                    CHANNEL_Y,
                     ctl.Property.HOLD_TIME,
                     ctl.HOLD_TIME_INFINITE,
                     tHandle=t_handle,
@@ -270,12 +289,11 @@ class Ptychography(QThread):
 
                 ctl.WaitForWrite(self.d_handle, r_id[0])
                 ctl.WaitForWrite(self.d_handle, r_id[1])
-                
+
                 # before acquiring image, check for MOVEMENT_FINISHED
                 self.waitForEvent()
-                """
 
-                # NOTE: might need to check whether movement_finished is true while it's still holding
+                """ # NOTE: might need to check whether movement_finished is true while it's still holding
                 # acquire images
                 self.camera.capture(self.directory, self.frames)
 
@@ -283,51 +301,31 @@ class Ptychography(QThread):
                 while not self.written:
                     print("not written")
                     QThread.usleep(100)
-                print("written")
+                print("written") """
+                # QThread.msleep(1)
 
                 # release holding position for x-y stages
-                """ t_handle = ctl.OpenCommandGroup(
+                t_handle = ctl.OpenCommandGroup(
                     self.d_handle, ctl.CmdGroupTriggerMode.DIRECT
                 )
 
-                ctl.Stop(self.d_handle, 0, tHandle=t_handle)
-                ctl.Stop(self.d_handle, 1, tHandle=t_handle)
+                ctl.Stop(self.d_handle, CHANNEL_X, tHandle=t_handle)
+                ctl.Stop(self.d_handle, CHANNEL_Y, tHandle=t_handle)
 
-                ctl.CloseCommandGroup(self.d_handle, t_handle) """
+                ctl.CloseCommandGroup(self.d_handle, t_handle)
 
                 self.written = False
 
             # stop holding z-stage, disable amplifiers
-            """ t_handle = ctl.OpenCommandGroup(
+            t_handle = ctl.OpenCommandGroup(
                 self.d_handle, ctl.CmdGroupTriggerMode.DIRECT
             )
 
-            ctl.Stop(self.d_handle, 2, tHandle=t_handle) """
+            ctl.Stop(self.d_handle, CHANNEL_Z, tHandle=t_handle)
 
-            # TODO: check if amplifier needs to be disabled
-            """ r_id[0] = ctl.RequestWriteProperty_i32(
-                self.d_handle,
-                0,
-                ctl.Property.AMPLIFIER_ENABLED,
-                ctl.FALSE,
-                tHandle=t_handle,
-            )
-            r_id[1] = ctl.RequestWriteProperty_i32(
-                self.d_handle,
-                1,
-                ctl.Property.AMPLIFIER_ENABLED,
-                ctl.FALSE,
-                tHandle=t_handle,
-            )
-            r_id[2] = ctl.RequestWriteProperty_i32(
-                self.d_handle,
-                2,
-                ctl.Property.AMPLIFIER_ENABLED,
-                ctl.FALSE,
-                tHandle=t_handle,
-            ) """
+            # NOTE: do not disable amplifier
 
-            """ ctl.CloseCommandGroup(self.d_handle, t_handle) """
+            ctl.CloseCommandGroup(self.d_handle, t_handle)
 
         else:
             raise Exception("No coordinates present, generate them first")
