@@ -5,6 +5,7 @@ from functools import partial
 
 from matplotlib.backends.backend_qtagg import FigureCanvasQTAgg as FigureCanvas
 from matplotlib.figure import Figure
+from matplotlib.patches import Circle
 from PySide6.QtCore import Slot
 from PySide6.QtGui import QImage, QPixmap
 from PySide6.QtWidgets import QApplication, QDialog, QFileDialog, QMainWindow
@@ -20,9 +21,6 @@ CHANNEL_Y = 2
 CHANNEL_Z = 0
 
 
-# TODO: controller not both at once
-
-
 class MoveForm(QDialog, Ui_Dialog):
     def __init__(self):
         super().__init__()
@@ -31,11 +29,9 @@ class MoveForm(QDialog, Ui_Dialog):
 
 # TODO: fix controller refresh -> it doesn't create a new instance after no device detected!!!
 
-# TODO: fix velocity, acceleration update via gui -> value input generates out of memory error due to integer too big
-
-# TODO: fix d_handle assignment to ptychography module -> at creation of controller it doesn't assign handle to ptychography module
-# -> wait for complete initialization of controller before assigning OR assign at another point (maybe @ GENERATE coordinates)
-# (and check whether handle is None before generating coordinates)
+# TODO: z-distance target-chassis 68.54 mm
+# TODO: software binning 4 pixels
+# TODO: do not reference, once found, keep centering
 
 
 class MainWindow(QMainWindow, Ui_MainWindow):
@@ -61,7 +57,6 @@ class MainWindow(QMainWindow, Ui_MainWindow):
 
         # ptychography start and stop
         self.start_trajectory_button.clicked.connect(self.start_acquisition)
-        self.trajectory_stop_button.clicked.connect(self.ptychography.abort)
 
         # controller
         self.refresh_button.clicked.connect(self.refresh_controller)
@@ -74,6 +69,8 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         if not self.ptychography.isRunning():
             print("Initializing acquisition sequence")
 
+            self.trajectory_stop_button.clicked.connect(self.ptychography.abort)
+
             # TODO: decouple creating method in ptychography
             # set z-stage coordinate, directory, number of frames
             self.ptychography.center_z = self.trajectory_center_z.value()
@@ -83,12 +80,18 @@ class MainWindow(QMainWindow, Ui_MainWindow):
             # start acquisition sequence (thread)
             self.ptychography.start()
 
+    # NOTE: exp = 3ms
+    # NOTE: gain = 10
+    # NOTE: black = 54
+
+    @Slot()
     def generate_graph(self):
         # clear axis at each generation
+        self.trajectory_select.addItem("Vogel Spiral")
         self.axes.cla()
         self.axes.set_xlabel(rf"X plane [$\mu$m]")
         self.axes.set_ylabel(rf"Y plane [$\mu$m]")
-        self.axes.set_title("Fermat Spiral Trajectory")
+        self.axes.set_title(rf"Spotsize: 150 $\mu$m")
         self.axes.grid()
 
         # generate coordinates
@@ -96,6 +99,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
             self.trajectory_center_x.value(),
             self.trajectory_center_y.value(),
             self.trajectory_radius.value(),
+            self.number_points.value(),
         )
 
         # plot coordinates and current point
@@ -108,6 +112,9 @@ class MainWindow(QMainWindow, Ui_MainWindow):
             self.ptychography.coordinates[0, 1],
             color="red",
         )
+
+        for coordinate in self.ptychography.coordinates:
+            self.axes.add_patch(Circle(xy=coordinate, radius=75, fill=False, color="r"))
 
         self.current_coordinate_plot.set_offsets(self.ptychography.coordinates[0])
         self.mpl.draw()
@@ -132,6 +139,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         self.current_coordinate_plot.set_offsets(current_coordinate)
         self.mpl.draw()
 
+    @Slot()
     def refresh_controller(self):
         self.error_label.setText("")
 
@@ -154,6 +162,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
 
             self.ptychography.d_handle = self.device.d_handle
 
+    @Slot()
     def refresh_camera(self):
         if hasattr(self, "camera"):
             self.camera.quit()
@@ -175,6 +184,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
             # set ptychography module camera to scientific camera
             self.ptychography.camera = self.camera
 
+    @Slot()
     def increase(self, channel):
         if channel == CHANNEL_X:
             self.device.increase(channel, self.step_size_0.value())
@@ -183,6 +193,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         if channel == CHANNEL_Z:
             self.device.increase(channel, self.step_size_2.value())
 
+    @Slot()
     def decrease(self, channel):
         if channel == CHANNEL_X:
             self.device.decrease(channel, self.step_size_0.value())

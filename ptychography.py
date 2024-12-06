@@ -8,7 +8,7 @@ CHANNEL_Y = 2
 CHANNEL_Z = 0
 
 
-# TODO: create path generator class, for paths creation to feed to the controller
+# TODO: create path generator class, for paths to feed to the controller
 class Ptychography(QThread):
     current_coordinate_signal = Signal(list)
 
@@ -20,8 +20,9 @@ class Ptychography(QThread):
         self.coordinates = None
         self.directory = None
         self.frames = None
-        self.center_z = 0  # nm
+        self.center_z = 0
         self.written = False
+        self.stop = False
 
     def fermat_spiral(
         self,
@@ -50,7 +51,7 @@ class Ptychography(QThread):
         # initialize fermat spiral's polar parameters
         # by dividing n_index by n_points the graph becomes normalized,
         # then multiplying by the radius gives the desired size
-        n_index: np.ndarray = np.arange(0, n_points - 1)
+        n_index: np.ndarray = np.arange(0, n_points)
         r: np.float64 = radius * np.sqrt(n_index / n_points)
         golden_angle: np.float64 = np.pi * (3 - np.sqrt(5))
         theta: np.ndarray = golden_angle * n_index
@@ -81,6 +82,7 @@ class Ptychography(QThread):
 
     # voglio fare uno scan con una certa taglia, con un passo tra r/2 & r/3 (1micron)
     # misura dimensione di fascio (3 micron circa ) knife edge -> misura diametro
+    # NOTE: questo solo se fermat spiral e NON vogel spiral
     def create_trajectory(
         self, initial_point: np.ndarray, coordinates: np.ndarray
     ) -> np.ndarray:
@@ -125,8 +127,10 @@ class Ptychography(QThread):
 
         return trajectory
 
-    def generate(self, x, y, radius):
-        self.coordinates = self.fermat_spiral(radius=radius, center_x=x, center_y=y)
+    def generate(self, x, y, radius, n_points):
+        self.coordinates = self.fermat_spiral(
+            n_points=n_points, radius=radius, center_x=x, center_y=y
+        )
 
     @Slot(bool)
     def is_written(self, written):
@@ -167,10 +171,10 @@ class Ptychography(QThread):
                     print(f"MCS2 {ctl.GetResultInfo(e.code)}")
                 return
 
+    @Slot()
     def run(self):
         try:
             # check if d_handle and camera exist
-            # TODO: make sure d_handle is assigned once connected
             if self.d_handle is not None and self.camera is not None:
                 self.camera.written_signal.connect(self.is_written)
 
@@ -188,6 +192,8 @@ class Ptychography(QThread):
 
     @Slot()
     def abort(self):
+        self.stop = True
+
         # stop motion and terminate thread
         t_handle = ctl.OpenCommandGroup(self.d_handle, ctl.CmdGroupTriggerMode.DIRECT)
 
@@ -195,10 +201,10 @@ class Ptychography(QThread):
         ctl.Stop(self.d_handle, CHANNEL_Y, tHandle=t_handle)
         ctl.Stop(self.d_handle, CHANNEL_Z, tHandle=t_handle)
 
+        print("abort")
+
         # close command group
         ctl.CloseCommandGroup(self.d_handle, t_handle)
-
-        self.terminate()
 
     def acquisition(self):
         r_id = [0] * 4
@@ -233,7 +239,9 @@ class Ptychography(QThread):
             )
 
             # move z-stage to z-coordinate and hold position indefinitely (use ctl.Stop do release)
-            ctl.Move(self.d_handle, 2, int(self.center_z * 1e6), tHandle=t_handle)
+            ctl.Move(
+                self.d_handle, CHANNEL_Z, int(self.center_z * 1e6), tHandle=t_handle
+            )
             r_id[3] = ctl.RequestWriteProperty_i32(
                 self.d_handle,
                 CHANNEL_Z,
@@ -254,6 +262,9 @@ class Ptychography(QThread):
 
             # move to coordinate, capture image, emit current coordinate
             for coordinate in self.coordinates:
+                if self.stop:
+                    break
+                QThread.msleep(500)
                 self.current_coordinate_signal.emit(coordinate)
 
                 # move to coordinate and hold position (commandgroup)
@@ -293,39 +304,47 @@ class Ptychography(QThread):
                 # before acquiring image, check for MOVEMENT_FINISHED
                 self.waitForEvent()
 
-                """ # NOTE: might need to check whether movement_finished is true while it's still holding
+                # sleep a bit before stopping otherwise will give error
+                # give enough time to hold position
+                QThread.msleep(3000)
+
+                # NOTE: might need to check whether movement_finished is true while it's still holding
                 # acquire images
                 self.camera.capture(self.directory, self.frames)
 
                 # wait until it's finished writing to file
                 while not self.written:
-                    print("not written")
-                    QThread.usleep(100)
-                print("written") """
+                    QThread.msleep(100)
+                print("Image saved")
                 # QThread.msleep(1)
 
                 # release holding position for x-y stages
                 t_handle = ctl.OpenCommandGroup(
                     self.d_handle, ctl.CmdGroupTriggerMode.DIRECT
                 )
-
                 ctl.Stop(self.d_handle, CHANNEL_X, tHandle=t_handle)
                 ctl.Stop(self.d_handle, CHANNEL_Y, tHandle=t_handle)
 
                 ctl.CloseCommandGroup(self.d_handle, t_handle)
 
+                self.waitForEvent()
+
                 self.written = False
 
-            # stop holding z-stage, disable amplifiers
+            # stop holding stages
             t_handle = ctl.OpenCommandGroup(
                 self.d_handle, ctl.CmdGroupTriggerMode.DIRECT
             )
 
+            ctl.Stop(self.d_handle, CHANNEL_X, tHandle=t_handle)
+            ctl.Stop(self.d_handle, CHANNEL_Y, tHandle=t_handle)
             ctl.Stop(self.d_handle, CHANNEL_Z, tHandle=t_handle)
 
             # NOTE: do not disable amplifier
 
             ctl.CloseCommandGroup(self.d_handle, t_handle)
+
+            self.stop = False
 
         else:
             raise Exception("No coordinates present, generate them first")

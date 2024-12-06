@@ -22,11 +22,9 @@ class Signals(QObject):
 
 # NOTE: no need for qthread due to connection to controller already async (and commands -> they're sent sync but processed async)
 
-# NOTE: COMMAND_GROUPs work really well! use as much as possible to ensure best reactivity
+# NOTE: COMMAND_GROUP works really well! use as much as possible to ensure best reactivity
 
 # NOTE: to guarantee precise movement position first select movement mode (in this case RELATIVE_MODE)
-
-# TODO: convert from nanometer to micrometer as per Prof's request -> use DoubleSpinBox
 
 
 class MCS2_Controller:
@@ -347,6 +345,7 @@ class MCS2_Controller:
         # open command group
         t_handle = ctl.OpenCommandGroup(self.d_handle, ctl.CmdGroupTriggerMode.DIRECT)
 
+        # NOTE: AUTO_ZERO works!!! no need to set position to zero after referencing
         # set referencing option to auto-zero
         self.r_id[0] = ctl.RequestWriteProperty_i32(
             self.d_handle,
@@ -370,52 +369,6 @@ class MCS2_Controller:
             tHandle=t_handle,
         )
 
-        """ # Set velocity to 1mm/s
-        self.r_id[3] = ctl.RequestWriteProperty_i64(
-            self.d_handle,
-            CHANNEL_X,
-            ctl.Property.MOVE_VELOCITY,
-            10_000_000_000,
-            tHandle=t_handle,
-        )
-        self.r_id[4] = ctl.RequestWriteProperty_i64(
-            self.d_handle,
-            CHANNEL_Y,
-            ctl.Property.MOVE_VELOCITY,
-            10_000_000_000,
-            tHandle=t_handle,
-        )
-        self.r_id[5] = ctl.RequestWriteProperty_i64(
-            self.d_handle,
-            CHANNEL_Z,
-            ctl.Property.MOVE_VELOCITY,
-            10_000_000_000,
-            tHandle=t_handle,
-        )
-
-        # Set acceleration to 10mm/s2.
-        self.r_id[6] = ctl.RequestWriteProperty_i64(
-            self.d_handle,
-            CHANNEL_X,
-            ctl.Property.MOVE_ACCELERATION,
-            100_000_000_000,
-            tHandle=t_handle,
-        )
-        self.r_id[7] = ctl.RequestWriteProperty_i64(
-            self.d_handle,
-            CHANNEL_Y,
-            ctl.Property.MOVE_ACCELERATION,
-            10_000_000_000,
-            tHandle=t_handle,
-        )
-        self.r_id[8] = ctl.RequestWriteProperty_i64(
-            self.d_handle,
-            CHANNEL_Z,
-            ctl.Property.MOVE_ACCELERATION,
-            10_000_000_000,
-            tHandle=t_handle,
-        ) """
-
         # Start referencing sequence
         ctl.Reference(self.d_handle, CHANNEL_X, tHandle=t_handle)
         ctl.Reference(self.d_handle, CHANNEL_Y, tHandle=t_handle)
@@ -423,12 +376,6 @@ class MCS2_Controller:
 
         # close command group
         ctl.CloseCommandGroup(self.d_handle, t_handle)
-
-        self.waitForEvent()
-        for id in self.r_id:
-            ctl.WaitForWrite(self.d_handle, id)
-
-        # with AUTO_ZERO no need to set position to zero after referencing
 
     @Slot()
     def calibrate(self):
@@ -471,20 +418,11 @@ class MCS2_Controller:
         for i in range(3):
             ctl.WaitForWrite(self.d_handle, self.r_id[i])
 
-        """ # TODO: write as command group
-        position_x = ctl.GetProperty_i64(self.d_handle, CHANNEL_X, ctl.Property.POSITION)
-        position_y = ctl.GetProperty_i64(self.d_handle, CHANNEL_Y, ctl.Property.POSITION)
-        position_z = ctl.GetProperty_i64(self.d_handle, CHANNEL_Z, ctl.Property.POSITION)
-
-        position = [position_x, position_y, position_z]
-
-        self.signals.update_data.emit(position) """
-
-    # TODO: convert from microm to pm
     def move(self, positions):
         # open command group
         t_handle = ctl.OpenCommandGroup(self.d_handle, ctl.CmdGroupTriggerMode.DIRECT)
 
+        # move to position (converted from um to pm)
         ctl.Move(self.d_handle, CHANNEL_X, int(positions[0] * 1e6), tHandle=t_handle)
         ctl.Move(self.d_handle, CHANNEL_Y, int(positions[1] * 1e6), tHandle=t_handle)
         ctl.Move(self.d_handle, CHANNEL_Z, int(positions[2] * 1e6), tHandle=t_handle)
@@ -499,28 +437,28 @@ class MCS2_Controller:
 
     def increase(self, channel, increment):
         if channel == CHANNEL_X:
-            print(f"channel: {channel}, increment: {increment* 1e6}")
+            print(f"channel: {channel}, increment: {increment * 1e6}")
             ctl.Move(self.d_handle, channel, int(increment * 1e6))
         if channel == CHANNEL_Y:
-            print(f"channel: {channel}, increment: {increment* 1e6}")
+            print(f"channel: {channel}, increment: {increment * 1e6}")
             ctl.Move(self.d_handle, channel, int(increment * 1e6))
         if channel == CHANNEL_Z:
-            print(f"channel: {channel}, increment: {increment* 1e6}")
+            print(f"channel: {channel}, increment: {increment * 1e6}")
             ctl.Move(self.d_handle, channel, int(increment * 1e6))
 
     def decrease(self, channel, increment):
         if channel == CHANNEL_X:
-            print(f"channel: {channel}, increment: {increment* 1e6}")
+            print(f"channel: {channel}, increment: {increment * 1e6}")
             ctl.Move(self.d_handle, channel, int(-increment * 1e6))
         if channel == CHANNEL_Y:
-            print(f"channel: {channel}, increment: {increment* 1e6}")
+            print(f"channel: {channel}, increment: {increment * 1e6}")
             ctl.Move(self.d_handle, channel, int(-increment * 1e6))
         if channel == CHANNEL_Z:
-            print(f"channel: {channel}, increment: {increment* 1e6}")
+            print(f"channel: {channel}, increment: {increment * 1e6}")
             ctl.Move(self.d_handle, channel, int(-increment * 1e6))
 
     def abort(self):
-        # close all channels at the same time
+        # stop all channels at the same time
         # open command group
         t_handle = ctl.OpenCommandGroup(self.d_handle, ctl.CmdGroupTriggerMode.DIRECT)
 
@@ -553,8 +491,7 @@ class MCS2_Controller:
 
         ctl.CloseCommandGroup(self.d_handle, t_handle)
 
-        # DO NOT Wait for the "triggered" event before reading the results -> slows down GUI
-        # self.waitForEvent()
+        # NOTE: DO NOT Wait for the "triggered" event before reading the results -> slows down GUI
 
         # TODO: remember to send float to 2 decimals
         position_x = ctl.ReadProperty_i64(self.d_handle, self.r_id[0]) / 1e6
