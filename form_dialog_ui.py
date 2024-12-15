@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 
 ################################################################################
-## Form generated from reading UI file 'form_dialogStubXo.ui'
+## Form generated from reading UI file 'form_dialogPqddQG.ui'
 ##
 ## Created by: Qt User Interface Compiler version 6.6.2
 ##
@@ -196,11 +196,11 @@ class Ui_Dialog(object):
         self.path_selection.setPlaceholderText(QCoreApplication.translate("Dialog", u"No path selected", None))
         self.path_label.setText(QCoreApplication.translate("Dialog", u"Preset Paths", None))
         self.channel_0_label.setText(QCoreApplication.translate("Dialog", u"Channel 0 [X]:", None))
-        self.position_0_label.setText(QCoreApplication.translate("Dialog", u"Position [nm]", None))
-        self.position_1_label.setText(QCoreApplication.translate("Dialog", u"Position [nm]", None))
+        self.position_0_label.setText(QCoreApplication.translate("Dialog", u"Position [\u03bcm]", None))
+        self.position_1_label.setText(QCoreApplication.translate("Dialog", u"Position [\u03bcm]", None))
         self.channel_1_label.setText(QCoreApplication.translate("Dialog", u"Channel 1 [Y]:", None))
         self.channel_2_label.setText(QCoreApplication.translate("Dialog", u"Channel 2 [Z]:", None))
-        self.position_2_label.setText(QCoreApplication.translate("Dialog", u"Position [nm]", None))
+        self.position_2_label.setText(QCoreApplication.translate("Dialog", u"Position [\u03bcm]", None))
         self.move_button.setText(QCoreApplication.translate("Dialog", u"Move", None))
         self.abort_button.setText(QCoreApplication.translate("Dialog", u"Abort", None))
     # retranslateUi

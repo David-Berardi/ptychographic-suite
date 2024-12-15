@@ -27,11 +27,18 @@ class MoveForm(QDialog, Ui_Dialog):
         self.setupUi(self)
 
 
-# TODO: fix controller refresh -> it doesn't create a new instance after no device detected!!!
+# NOTE: software binning 2x2 pixels
+# NOTE: do not reference, once found, hold position
 
-# TODO: z-distance target-chassis 68.54 mm
-# TODO: software binning 4 pixels
-# TODO: do not reference, once found, keep centering
+# TODO: add spot radius as a parameter in the GUI
+
+# TODO: first data acquisition parameters
+# NOTE: exp = 3ms
+# NOTE: gain = 10
+# NOTE: black = 54
+# NOTE: points = 200
+# NOTE: radius = 150 um
+# NOTE: z-distance target-chassis 68.54 mm
 
 
 class MainWindow(QMainWindow, Ui_MainWindow):
@@ -72,17 +79,14 @@ class MainWindow(QMainWindow, Ui_MainWindow):
             self.trajectory_stop_button.clicked.connect(self.ptychography.abort)
 
             # TODO: decouple creating method in ptychography
-            # set z-stage coordinate, directory, number of frames
+            # set z-stage coordinate, directory, number of frames, delay
             self.ptychography.center_z = self.trajectory_center_z.value()
             self.ptychography.directory = self.directory_label.text()
             self.ptychography.frames = self.frames.value()
+            self.ptychography.delay = self.delay.value()
 
             # start acquisition sequence (thread)
             self.ptychography.start()
-
-    # NOTE: exp = 3ms
-    # NOTE: gain = 10
-    # NOTE: black = 54
 
     @Slot()
     def generate_graph(self):
@@ -169,7 +173,12 @@ class MainWindow(QMainWindow, Ui_MainWindow):
             self.camera.wait()
 
         if self.cameras.count() == 0:
-            self.camera = ScientificCamera(self.frames.value(), self.exposure.value())
+            self.camera = ScientificCamera(
+                self.frames.value(),
+                self.exposure.value(),
+                self.gain.value(),
+                self.bins.value(),
+            )
             self.camera.start()
 
             self.directory_label.setText(str(os.getcwd()))
@@ -178,6 +187,8 @@ class MainWindow(QMainWindow, Ui_MainWindow):
             self.camera.model_signal.connect(self.show_model)
             self.capture_button.clicked.connect(self.capture)
             self.exposure.valueChanged.connect(self.camera.update_exposure)
+            self.gain.valueChanged.connect(self.camera.update_gain)
+            self.bins.valueChanged.connect(self.camera.update_bins)
             self.directory_button.clicked.connect(self.select_directory)
             self.stop_button.clicked.connect(self.stop_camera)
 
@@ -250,8 +261,10 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         self.directory_button.clicked.disconnect()
         self.stop_button.clicked.disconnect()
         self.exposure.valueChanged.disconnect()
+        self.gain.valueChanged.disconnect()
+        self.bins.valueChanged.disconnect()
 
-        self.camera.terminate()
+        self.camera.quit()
 
     @Slot(str)
     def show_locator(self, locator_id):
@@ -286,6 +299,9 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         # add movement modes
         self.move_mode_select.addItem("Absolute Mode")
         self.move_mode_select.addItem("Relative Mode")
+
+        # set default movement mode as RELATIVE:
+        self.move_mode_select.setCurrentIndex(1)
 
         self.move_mode_select.currentIndexChanged.connect(self.device.set_movement_mode)
 
@@ -369,8 +385,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
             self.device.set_acceleration(channel, self.acceleration_2.value())
 
     def move(self):
-        # add movement functionality
-        print(self.move_form.position_0.value())
+        # movement functionality
         positions = [
             self.move_form.position_0.value(),
             self.move_form.position_1.value(),

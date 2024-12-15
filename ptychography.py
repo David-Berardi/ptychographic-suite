@@ -7,6 +7,11 @@ CHANNEL_X = 1
 CHANNEL_Y = 2
 CHANNEL_Z = 0
 
+# TODO: waitForEvent is not behaving as expected, check whether it blocks just the controller or the program itself
+# it must block the program! maybe use a while loop
+
+# TODO: check if you really need to stop the holding before moving and then re-enabling the holding?
+
 
 # TODO: create path generator class, for paths to feed to the controller
 class Ptychography(QThread):
@@ -23,6 +28,7 @@ class Ptychography(QThread):
         self.center_z = 0
         self.written = False
         self.stop = False
+        self.delay = 0
 
     def fermat_spiral(
         self,
@@ -134,7 +140,6 @@ class Ptychography(QThread):
 
     @Slot(bool)
     def is_written(self, written):
-        # print(f"written: {written}")
         self.written = written
 
     # after requesting image save, in a while loop qthread sleep for 0.1 secs or less until signal written is true
@@ -152,17 +157,14 @@ class Ptychography(QThread):
                     t_handle = ctl.EventParameter.PARAM_HANDLE(event.i32)
                     result_code = ctl.EventParameter.PARAM_RESULT(event.i32)
                     if result_code == ctl.ErrorCode.NONE:
-                        print(f"MCS2 movement finished, handle: {t_handle}")
+                        pass
+                        # print(f"MCS2 movement finished, handle: {t_handle}")
                     else:
-                        # The command group failed -> the reason may be found in the result code.
-                        # To determine which command caused the error, read the individual results of the command
-                        # with "WaitForWrite" / "ReadProperty_x".
                         print(
                             f"MCS2 command group failed, handle: {t_handle}, error: 0x{result_code:04X} ({ctl.GetResultInfo(result_code)})"
                         )
                     break
                 else:
-                    # ignore other events and wait for the next one
                     pass
             except ctl.Error as e:
                 if e.code == ctl.ErrorCode.TIMEOUT:
@@ -211,6 +213,9 @@ class Ptychography(QThread):
         self.written = False
 
         if self.coordinates is not None:
+            # save current coordinates to csv
+            np.savetxt("coordinates.csv", self.coordinates, delimiter=",")
+
             # enable amplifier for each channel
             t_handle = ctl.OpenCommandGroup(
                 self.d_handle, ctl.CmdGroupTriggerMode.DIRECT
@@ -239,9 +244,12 @@ class Ptychography(QThread):
             )
 
             # move z-stage to z-coordinate and hold position indefinitely (use ctl.Stop do release)
-            ctl.Move(
-                self.d_handle, CHANNEL_Z, int(self.center_z * 1e6), tHandle=t_handle
-            )
+            if self.center_z != 0:
+                ctl.Move(
+                    self.d_handle, CHANNEL_Z, int(self.center_z * 1e6), tHandle=t_handle
+                )
+
+            # hold current z position
             r_id[3] = ctl.RequestWriteProperty_i32(
                 self.d_handle,
                 CHANNEL_Z,
@@ -264,7 +272,7 @@ class Ptychography(QThread):
             for coordinate in self.coordinates:
                 if self.stop:
                     break
-                QThread.msleep(500)
+
                 self.current_coordinate_signal.emit(coordinate)
 
                 # move to coordinate and hold position (commandgroup)
@@ -306,7 +314,8 @@ class Ptychography(QThread):
 
                 # sleep a bit before stopping otherwise will give error
                 # give enough time to hold position
-                QThread.msleep(3000)
+                if self.delay > 0:
+                    QThread.msleep(self.delay)
 
                 # NOTE: might need to check whether movement_finished is true while it's still holding
                 # acquire images
@@ -314,12 +323,11 @@ class Ptychography(QThread):
 
                 # wait until it's finished writing to file
                 while not self.written:
-                    QThread.msleep(100)
-                print("Image saved")
-                # QThread.msleep(1)
+                    QThread.msleep(1)
 
+                # TODO: check if stopping is really needed. Perhaps, the release can be done just at the end
                 # release holding position for x-y stages
-                t_handle = ctl.OpenCommandGroup(
+                """ t_handle = ctl.OpenCommandGroup(
                     self.d_handle, ctl.CmdGroupTriggerMode.DIRECT
                 )
                 ctl.Stop(self.d_handle, CHANNEL_X, tHandle=t_handle)
@@ -327,10 +335,11 @@ class Ptychography(QThread):
 
                 ctl.CloseCommandGroup(self.d_handle, t_handle)
 
-                self.waitForEvent()
+                self.waitForEvent() """
 
                 self.written = False
 
+            # NOTE: do not disable amplifier
             # stop holding stages
             t_handle = ctl.OpenCommandGroup(
                 self.d_handle, ctl.CmdGroupTriggerMode.DIRECT
@@ -339,8 +348,6 @@ class Ptychography(QThread):
             ctl.Stop(self.d_handle, CHANNEL_X, tHandle=t_handle)
             ctl.Stop(self.d_handle, CHANNEL_Y, tHandle=t_handle)
             ctl.Stop(self.d_handle, CHANNEL_Z, tHandle=t_handle)
-
-            # NOTE: do not disable amplifier
 
             ctl.CloseCommandGroup(self.d_handle, t_handle)
 

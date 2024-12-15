@@ -67,20 +67,7 @@ class MCS2_Controller:
                 self.d_handle = ctl.Open(locator)
                 self.r_id = [0] * 9
 
-                base_unit = ctl.GetProperty_i32(
-                    self.d_handle, CHANNEL_X, ctl.Property.POS_BASE_UNIT
-                )
-
-                position = ctl.GetProperty_i64(
-                    self.d_handle, CHANNEL_Z, ctl.Property.POSITION
-                )
-                print(f"MCS2 position of channel {CHANNEL_Z}: {position}", end="")
-                print("pm.") if base_unit == ctl.BaseUnit.METER else print("ndeg.")
-
-                # start timer
-                self.timer.start()
-
-                default_velocity = 1_000_000_000
+                default_velocity = 2_000_000_000
                 default_acceleration = 10_000_000_000
 
                 t_handle = ctl.OpenCommandGroup(
@@ -135,6 +122,9 @@ class MCS2_Controller:
 
                 ctl.CloseCommandGroup(self.d_handle, t_handle)
 
+                # set default movement mode to RELATIVE
+                self.set_movement_mode(1)
+
                 # update interface with default velocity and acceleration
                 self.signals.default.emit(
                     [default_velocity / 1e6, default_acceleration / 1e6]
@@ -142,6 +132,7 @@ class MCS2_Controller:
 
                 # start data acquisition
                 self.timer.start()
+
             except ctl.Error as error:
                 print(
                     f"MCS2 {error.func}: {ctl.GetResultInfo(error.code)}, error: {ctl.ErrorCode(error.code).name} (0x{error.code:04X}) in line: {sys.exc_info()[-1].tb_lineno}."
@@ -433,7 +424,7 @@ class MCS2_Controller:
         # optional: block and wait for event
         self.waitForEvent()
 
-        print(f"MCS2 move channel 0 to absolute relative: {positions[0]} pm.")
+        # print(f"MCS2 move channel 0 to absolute relative: {positions[0]} pm.")
 
     def increase(self, channel, increment):
         if channel == CHANNEL_X:

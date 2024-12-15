@@ -113,7 +113,7 @@
          <item row="0" column="0">
           <widget class="QLabel" name="position_0_label">
            <property name="text">
-            <string>Position [nm]</string>
+            <string>Position [μm]</string>
            </property>
           </widget>
          </item>
@@ -150,7 +150,7 @@
          <item row="0" column="0">
           <widget class="QLabel" name="position_1_label">
            <property name="text">
-            <string>Position [nm]</string>
+            <string>Position [μm]</string>
            </property>
           </widget>
          </item>
@@ -207,7 +207,7 @@
          <item row="0" column="0">
           <widget class="QLabel" name="position_2_label">
            <property name="text">
-            <string>Position [nm]</string>
+            <string>Position [μm]</string>
            </property>
           </widget>
          </item>

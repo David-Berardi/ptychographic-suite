@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 
 ################################################################################
-## Form generated from reading UI file 'main_windowUbuwyD.ui'
+## Form generated from reading UI file 'main_windowLLxzke.ui'
 ##
 ## Created by: Qt User Interface Compiler version 6.6.2
 ##
@@ -494,27 +494,6 @@ class Ui_MainWindow(object):
 
         self.gridLayout_6 = QGridLayout()
         self.gridLayout_6.setObjectName(u"gridLayout_6")
-        self.exposure_label = QLabel(self.camera_properties_tab)
-        self.exposure_label.setObjectName(u"exposure_label")
-
-        self.gridLayout_6.addWidget(self.exposure_label, 0, 0, 1, 1)
-
-        self.exposure = QSpinBox(self.camera_properties_tab)
-        self.exposure.setObjectName(u"exposure")
-        self.exposure.setAlignment(Qt.AlignmentFlag.AlignRight|Qt.AlignmentFlag.AlignTrailing|Qt.AlignmentFlag.AlignVCenter)
-        self.exposure.setButtonSymbols(QAbstractSpinBox.ButtonSymbols.NoButtons)
-        self.exposure.setKeyboardTracking(False)
-        self.exposure.setMinimum(1000)
-        self.exposure.setMaximum(1000000000)
-        self.exposure.setValue(11000)
-
-        self.gridLayout_6.addWidget(self.exposure, 0, 1, 1, 1)
-
-        self.frames_label = QLabel(self.camera_properties_tab)
-        self.frames_label.setObjectName(u"frames_label")
-
-        self.gridLayout_6.addWidget(self.frames_label, 1, 0, 1, 1)
-
         self.frames = QSpinBox(self.camera_properties_tab)
         self.frames.setObjectName(u"frames")
         self.frames.setAlignment(Qt.AlignmentFlag.AlignRight|Qt.AlignmentFlag.AlignTrailing|Qt.AlignmentFlag.AlignVCenter)
@@ -523,12 +502,37 @@ class Ui_MainWindow(object):
         self.frames.setMinimum(1)
         self.frames.setMaximum(100)
 
-        self.gridLayout_6.addWidget(self.frames, 1, 1, 1, 1)
+        self.gridLayout_6.addWidget(self.frames, 3, 1, 1, 1)
 
-        self.capture_button = QPushButton(self.camera_properties_tab)
-        self.capture_button.setObjectName(u"capture_button")
+        self.gain = QSpinBox(self.camera_properties_tab)
+        self.gain.setObjectName(u"gain")
+        self.gain.setAlignment(Qt.AlignmentFlag.AlignRight|Qt.AlignmentFlag.AlignTrailing|Qt.AlignmentFlag.AlignVCenter)
+        self.gain.setButtonSymbols(QAbstractSpinBox.ButtonSymbols.NoButtons)
+        self.gain.setMaximum(1000)
+        self.gain.setValue(10)
 
-        self.gridLayout_6.addWidget(self.capture_button, 2, 0, 1, 1)
+        self.gridLayout_6.addWidget(self.gain, 1, 1, 1, 1)
+
+        self.gain_label = QLabel(self.camera_properties_tab)
+        self.gain_label.setObjectName(u"gain_label")
+
+        self.gridLayout_6.addWidget(self.gain_label, 1, 0, 1, 1)
+
+        self.exposure = QSpinBox(self.camera_properties_tab)
+        self.exposure.setObjectName(u"exposure")
+        self.exposure.setAlignment(Qt.AlignmentFlag.AlignRight|Qt.AlignmentFlag.AlignTrailing|Qt.AlignmentFlag.AlignVCenter)
+        self.exposure.setButtonSymbols(QAbstractSpinBox.ButtonSymbols.NoButtons)
+        self.exposure.setKeyboardTracking(False)
+        self.exposure.setMinimum(1)
+        self.exposure.setMaximum(1000000000)
+        self.exposure.setValue(1)
+
+        self.gridLayout_6.addWidget(self.exposure, 0, 1, 1, 1)
+
+        self.exposure_label = QLabel(self.camera_properties_tab)
+        self.exposure_label.setObjectName(u"exposure_label")
+
+        self.gridLayout_6.addWidget(self.exposure_label, 0, 0, 1, 1)
 
         self.stop_button = QPushButton(self.camera_properties_tab)
         self.stop_button.setObjectName(u"stop_button")
@@ -539,7 +543,31 @@ class Ui_MainWindow(object):
         self.stop_button.setSizePolicy(sizePolicy1)
         self.stop_button.setLayoutDirection(Qt.LayoutDirection.LeftToRight)
 
-        self.gridLayout_6.addWidget(self.stop_button, 2, 1, 1, 1)
+        self.gridLayout_6.addWidget(self.stop_button, 4, 1, 1, 1)
+
+        self.frames_label = QLabel(self.camera_properties_tab)
+        self.frames_label.setObjectName(u"frames_label")
+
+        self.gridLayout_6.addWidget(self.frames_label, 3, 0, 1, 1)
+
+        self.capture_button = QPushButton(self.camera_properties_tab)
+        self.capture_button.setObjectName(u"capture_button")
+
+        self.gridLayout_6.addWidget(self.capture_button, 4, 0, 1, 1)
+
+        self.bins_label = QLabel(self.camera_properties_tab)
+        self.bins_label.setObjectName(u"bins_label")
+
+        self.gridLayout_6.addWidget(self.bins_label, 2, 0, 1, 1)
+
+        self.bins = QSpinBox(self.camera_properties_tab)
+        self.bins.setObjectName(u"bins")
+        self.bins.setAlignment(Qt.AlignmentFlag.AlignRight|Qt.AlignmentFlag.AlignTrailing|Qt.AlignmentFlag.AlignVCenter)
+        self.bins.setButtonSymbols(QAbstractSpinBox.ButtonSymbols.NoButtons)
+        self.bins.setMinimum(1)
+        self.bins.setMaximum(10)
+
+        self.gridLayout_6.addWidget(self.bins, 2, 1, 1, 1)
 
 
         self.verticalLayout_2.addLayout(self.gridLayout_6)
@@ -566,61 +594,10 @@ class Ui_MainWindow(object):
 
         self.gridLayout_10 = QGridLayout()
         self.gridLayout_10.setObjectName(u"gridLayout_10")
-        self.trajectory_generate_button = QPushButton(self.acquisition_tab)
-        self.trajectory_generate_button.setObjectName(u"trajectory_generate_button")
-
-        self.gridLayout_10.addWidget(self.trajectory_generate_button, 6, 0, 1, 2)
-
-        self.trajectory_stop_button = QPushButton(self.acquisition_tab)
-        self.trajectory_stop_button.setObjectName(u"trajectory_stop_button")
-        self.trajectory_stop_button.setEnabled(True)
-
-        self.gridLayout_10.addWidget(self.trajectory_stop_button, 7, 1, 1, 1)
-
-        self.center_x_label = QLabel(self.acquisition_tab)
-        self.center_x_label.setObjectName(u"center_x_label")
-
-        self.gridLayout_10.addWidget(self.center_x_label, 1, 0, 1, 1)
-
-        self.radius_label = QLabel(self.acquisition_tab)
-        self.radius_label.setObjectName(u"radius_label")
-
-        self.gridLayout_10.addWidget(self.radius_label, 4, 0, 1, 1)
-
-        self.start_trajectory_button = QPushButton(self.acquisition_tab)
-        self.start_trajectory_button.setObjectName(u"start_trajectory_button")
-        self.start_trajectory_button.setEnabled(True)
-
-        self.gridLayout_10.addWidget(self.start_trajectory_button, 7, 0, 1, 1)
-
         self.number_points_label = QLabel(self.acquisition_tab)
         self.number_points_label.setObjectName(u"number_points_label")
 
-        self.gridLayout_10.addWidget(self.number_points_label, 5, 0, 1, 1)
-
-        self.center_y_label = QLabel(self.acquisition_tab)
-        self.center_y_label.setObjectName(u"center_y_label")
-
-        self.gridLayout_10.addWidget(self.center_y_label, 2, 0, 1, 1)
-
-        self.trajectory_center_y = QDoubleSpinBox(self.acquisition_tab)
-        self.trajectory_center_y.setObjectName(u"trajectory_center_y")
-        self.trajectory_center_y.setAlignment(Qt.AlignmentFlag.AlignRight|Qt.AlignmentFlag.AlignTrailing|Qt.AlignmentFlag.AlignVCenter)
-        self.trajectory_center_y.setButtonSymbols(QAbstractSpinBox.ButtonSymbols.NoButtons)
-        self.trajectory_center_y.setMinimum(-50000.000000000000000)
-        self.trajectory_center_y.setMaximum(50000.000000000000000)
-
-        self.gridLayout_10.addWidget(self.trajectory_center_y, 2, 1, 1, 1)
-
-        self.center_z_label = QLabel(self.acquisition_tab)
-        self.center_z_label.setObjectName(u"center_z_label")
-
-        self.gridLayout_10.addWidget(self.center_z_label, 3, 0, 1, 1)
-
-        self.trajectory_label = QLabel(self.acquisition_tab)
-        self.trajectory_label.setObjectName(u"trajectory_label")
-
-        self.gridLayout_10.addWidget(self.trajectory_label, 0, 0, 1, 1)
+        self.gridLayout_10.addWidget(self.number_points_label, 6, 0, 1, 1)
 
         self.trajectory_center_z = QDoubleSpinBox(self.acquisition_tab)
         self.trajectory_center_z.setObjectName(u"trajectory_center_z")
@@ -629,21 +606,17 @@ class Ui_MainWindow(object):
         self.trajectory_center_z.setMinimum(-50000.000000000000000)
         self.trajectory_center_z.setMaximum(50000.000000000000000)
 
-        self.gridLayout_10.addWidget(self.trajectory_center_z, 3, 1, 1, 1)
+        self.gridLayout_10.addWidget(self.trajectory_center_z, 4, 1, 1, 1)
 
-        self.trajectory_select = QComboBox(self.acquisition_tab)
-        self.trajectory_select.setObjectName(u"trajectory_select")
+        self.trajectory_generate_button = QPushButton(self.acquisition_tab)
+        self.trajectory_generate_button.setObjectName(u"trajectory_generate_button")
 
-        self.gridLayout_10.addWidget(self.trajectory_select, 0, 1, 1, 1)
+        self.gridLayout_10.addWidget(self.trajectory_generate_button, 7, 0, 1, 2)
 
-        self.trajectory_center_x = QDoubleSpinBox(self.acquisition_tab)
-        self.trajectory_center_x.setObjectName(u"trajectory_center_x")
-        self.trajectory_center_x.setAlignment(Qt.AlignmentFlag.AlignRight|Qt.AlignmentFlag.AlignTrailing|Qt.AlignmentFlag.AlignVCenter)
-        self.trajectory_center_x.setButtonSymbols(QAbstractSpinBox.ButtonSymbols.NoButtons)
-        self.trajectory_center_x.setMinimum(-50000.000000000000000)
-        self.trajectory_center_x.setMaximum(50000.000000000000000)
+        self.center_z_label = QLabel(self.acquisition_tab)
+        self.center_z_label.setObjectName(u"center_z_label")
 
-        self.gridLayout_10.addWidget(self.trajectory_center_x, 1, 1, 1, 1)
+        self.gridLayout_10.addWidget(self.center_z_label, 4, 0, 1, 1)
 
         self.trajectory_radius = QDoubleSpinBox(self.acquisition_tab)
         self.trajectory_radius.setObjectName(u"trajectory_radius")
@@ -653,7 +626,34 @@ class Ui_MainWindow(object):
         self.trajectory_radius.setMaximum(50000.000000000000000)
         self.trajectory_radius.setValue(1.000000000000000)
 
-        self.gridLayout_10.addWidget(self.trajectory_radius, 4, 1, 1, 1)
+        self.gridLayout_10.addWidget(self.trajectory_radius, 5, 1, 1, 1)
+
+        self.trajectory_label = QLabel(self.acquisition_tab)
+        self.trajectory_label.setObjectName(u"trajectory_label")
+
+        self.gridLayout_10.addWidget(self.trajectory_label, 0, 0, 1, 1)
+
+        self.start_trajectory_button = QPushButton(self.acquisition_tab)
+        self.start_trajectory_button.setObjectName(u"start_trajectory_button")
+        self.start_trajectory_button.setEnabled(True)
+
+        self.gridLayout_10.addWidget(self.start_trajectory_button, 8, 0, 1, 1)
+
+        self.center_x_label = QLabel(self.acquisition_tab)
+        self.center_x_label.setObjectName(u"center_x_label")
+
+        self.gridLayout_10.addWidget(self.center_x_label, 2, 0, 1, 1)
+
+        self.trajectory_stop_button = QPushButton(self.acquisition_tab)
+        self.trajectory_stop_button.setObjectName(u"trajectory_stop_button")
+        self.trajectory_stop_button.setEnabled(True)
+
+        self.gridLayout_10.addWidget(self.trajectory_stop_button, 8, 1, 1, 1)
+
+        self.trajectory_select = QComboBox(self.acquisition_tab)
+        self.trajectory_select.setObjectName(u"trajectory_select")
+
+        self.gridLayout_10.addWidget(self.trajectory_select, 0, 1, 1, 1)
 
         self.number_points = QSpinBox(self.acquisition_tab)
         self.number_points.setObjectName(u"number_points")
@@ -663,7 +663,48 @@ class Ui_MainWindow(object):
         self.number_points.setMaximum(100000000)
         self.number_points.setValue(119)
 
-        self.gridLayout_10.addWidget(self.number_points, 5, 1, 1, 1)
+        self.gridLayout_10.addWidget(self.number_points, 6, 1, 1, 1)
+
+        self.trajectory_center_y = QDoubleSpinBox(self.acquisition_tab)
+        self.trajectory_center_y.setObjectName(u"trajectory_center_y")
+        self.trajectory_center_y.setAlignment(Qt.AlignmentFlag.AlignRight|Qt.AlignmentFlag.AlignTrailing|Qt.AlignmentFlag.AlignVCenter)
+        self.trajectory_center_y.setButtonSymbols(QAbstractSpinBox.ButtonSymbols.NoButtons)
+        self.trajectory_center_y.setMinimum(-50000.000000000000000)
+        self.trajectory_center_y.setMaximum(50000.000000000000000)
+
+        self.gridLayout_10.addWidget(self.trajectory_center_y, 3, 1, 1, 1)
+
+        self.trajectory_center_x = QDoubleSpinBox(self.acquisition_tab)
+        self.trajectory_center_x.setObjectName(u"trajectory_center_x")
+        self.trajectory_center_x.setAlignment(Qt.AlignmentFlag.AlignRight|Qt.AlignmentFlag.AlignTrailing|Qt.AlignmentFlag.AlignVCenter)
+        self.trajectory_center_x.setButtonSymbols(QAbstractSpinBox.ButtonSymbols.NoButtons)
+        self.trajectory_center_x.setMinimum(-50000.000000000000000)
+        self.trajectory_center_x.setMaximum(50000.000000000000000)
+
+        self.gridLayout_10.addWidget(self.trajectory_center_x, 2, 1, 1, 1)
+
+        self.center_y_label = QLabel(self.acquisition_tab)
+        self.center_y_label.setObjectName(u"center_y_label")
+
+        self.gridLayout_10.addWidget(self.center_y_label, 3, 0, 1, 1)
+
+        self.radius_label = QLabel(self.acquisition_tab)
+        self.radius_label.setObjectName(u"radius_label")
+
+        self.gridLayout_10.addWidget(self.radius_label, 5, 0, 1, 1)
+
+        self.delay_label = QLabel(self.acquisition_tab)
+        self.delay_label.setObjectName(u"delay_label")
+
+        self.gridLayout_10.addWidget(self.delay_label, 1, 0, 1, 1)
+
+        self.delay = QSpinBox(self.acquisition_tab)
+        self.delay.setObjectName(u"delay")
+        self.delay.setAlignment(Qt.AlignmentFlag.AlignRight|Qt.AlignmentFlag.AlignTrailing|Qt.AlignmentFlag.AlignVCenter)
+        self.delay.setButtonSymbols(QAbstractSpinBox.ButtonSymbols.NoButtons)
+        self.delay.setMaximum(1000000000)
+
+        self.gridLayout_10.addWidget(self.delay, 1, 1, 1, 1)
 
 
         self.verticalLayout_5.addLayout(self.gridLayout_10)
@@ -700,7 +741,7 @@ class Ui_MainWindow(object):
 
         self.retranslateUi(MainWindow)
 
-        self.tabWidget.setCurrentIndex(2)
+        self.tabWidget.setCurrentIndex(0)
 
 
         QMetaObject.connectSlotsByName(MainWindow)
@@ -754,22 +795,25 @@ class Ui_MainWindow(object):
         self.select_label.setText(QCoreApplication.translate("MainWindow", u"Select Directory", None))
         self.directory_label.setText("")
         self.directory_button.setText(QCoreApplication.translate("MainWindow", u"...", None))
-        self.exposure_label.setText(QCoreApplication.translate("MainWindow", u"Exposure Time [\u03bcs]", None))
+        self.gain_label.setText(QCoreApplication.translate("MainWindow", u"Gain", None))
+        self.exposure_label.setText(QCoreApplication.translate("MainWindow", u"Exposure Time [ms]", None))
+        self.stop_button.setText(QCoreApplication.translate("MainWindow", u"Stop", None))
         self.frames_label.setText(QCoreApplication.translate("MainWindow", u"Number of Frames", None))
         self.capture_button.setText(QCoreApplication.translate("MainWindow", u"Capture", None))
-        self.stop_button.setText(QCoreApplication.translate("MainWindow", u"Stop", None))
+        self.bins_label.setText(QCoreApplication.translate("MainWindow", u"Bins [pixels]", None))
         self.tabWidget.setTabText(self.tabWidget.indexOf(self.camera_properties_tab), QCoreApplication.translate("MainWindow", u"Camera Properties", None))
-        self.trajectory_generate_button.setText(QCoreApplication.translate("MainWindow", u"Generate", None))
-        self.trajectory_stop_button.setText(QCoreApplication.translate("MainWindow", u"Stop", None))
-        self.center_x_label.setText(QCoreApplication.translate("MainWindow", u"Center X [\u03bcm]", None))
-        self.radius_label.setText(QCoreApplication.translate("MainWindow", u"Radius [\u03bcm]", None))
-        self.start_trajectory_button.setText(QCoreApplication.translate("MainWindow", u"Start", None))
         self.number_points_label.setText(QCoreApplication.translate("MainWindow", u"Number of points", None))
-        self.center_y_label.setText(QCoreApplication.translate("MainWindow", u"Center Y [\u03bcm]", None))
+        self.trajectory_generate_button.setText(QCoreApplication.translate("MainWindow", u"Generate", None))
         self.center_z_label.setText(QCoreApplication.translate("MainWindow", u"Center Z [\u03bcm]", None))
         self.trajectory_label.setText(QCoreApplication.translate("MainWindow", u"Trajectory", None))
+        self.start_trajectory_button.setText(QCoreApplication.translate("MainWindow", u"Start", None))
+        self.center_x_label.setText(QCoreApplication.translate("MainWindow", u"Center X [\u03bcm]", None))
+        self.trajectory_stop_button.setText(QCoreApplication.translate("MainWindow", u"Stop", None))
         self.trajectory_select.setCurrentText("")
         self.trajectory_select.setPlaceholderText(QCoreApplication.translate("MainWindow", u"No trajectory selected", None))
+        self.center_y_label.setText(QCoreApplication.translate("MainWindow", u"Center Y [\u03bcm]", None))
+        self.radius_label.setText(QCoreApplication.translate("MainWindow", u"Radius [\u03bcm]", None))
+        self.delay_label.setText(QCoreApplication.translate("MainWindow", u"Delay [ms]", None))
         self.tabWidget.setTabText(self.tabWidget.indexOf(self.acquisition_tab), QCoreApplication.translate("MainWindow", u"Ptychographic Acquisition", None))
         self.tabWidget.setTabText(self.tabWidget.indexOf(self.algorithm_tab), QCoreApplication.translate("MainWindow", u"Ptychographic Algorithm", None))
         self.menuFile.setTitle(QCoreApplication.translate("MainWindow", u"File", None))
