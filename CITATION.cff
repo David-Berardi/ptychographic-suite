@@ -3,7 +3,9 @@ message: "If you use this software, please cite it as below."
 authors:
 - family-names: "Berardi"
   given-names: "David"
-title: "ptychographic suite for data acquisition"
+  orcid: https://orcid.org/0009-0001-6843-8602
+title: "ptychographic suite for hardware automation, data acquisition and processing"
 version: 1.0.0
 date-released: 2024-12-07
+license: "CC BY-NC-SA 4.0"
 url: "https://github.com/David-Berardi/ptychographic-suite"
